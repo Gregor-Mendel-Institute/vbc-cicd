@@ -1,0 +1,23 @@
+# docker build --build-arg MOLECULE_UID=$(id -u svc_jenkins_docker) --build-arg DOCKER_GID=$(getent group docker | cut -d: -f3)  --build_arg JENKINS_GID=$(id -g svc_jenkins_docker) -t molecule:vbc  -f Dockerfile.molecule .
+
+FROM "quay.io/ansible/molecule:2.20"
+
+ARG MOLECULE_UID
+ARG JENKINS_GID
+ARG DOCKER_GID
+
+USER root
+
+# add shadow tools
+RUN apk add --ignore-cache shadow sudo
+
+# docker python package appears to be installed already
+
+# set molecule uid to given number --build-arg MOLECULE_UID=1234, DOCKER_GID=992
+RUN groupadd --gid ${DOCKER_GID} host-docker-grp && groupadd --gid ${JENKINS_GID} host-jenkins-grp && useradd --system -m -N --uid ${MOLECULE_UID} --gid ${JENKINS_GID} --groups host-docker-grp,wheel molecule
+
+# allow molecule user to escape jenkins prison
+RUN echo "molecule ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+USER molecule
+
