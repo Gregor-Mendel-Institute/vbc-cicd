@@ -25,8 +25,7 @@ pipeline {
         stage('generate') {
             steps {
                 // call the jobdsl script for the roles
-                // don't use sandbox -> we can run as SYSTEM and do the docker build
-                jobDsl removedConfigFilesAction: 'DELETE', removedJobAction: 'DELETE', removedViewAction: 'DELETE', sandbox: false, targets: 'jobs/ansibleRoles.groovy'
+                jobDsl removedConfigFilesAction: 'DELETE', removedJobAction: 'DELETE', removedViewAction: 'DELETE', lookupStrategy: 'SEED_JOB', sandbox: true, targets: 'jobs/*.groovy'
             }
         }
     }

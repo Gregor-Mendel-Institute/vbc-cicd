@@ -3,7 +3,7 @@ import groovy.transform.Field
 // config values for pushing/pulling the molecule test environment container image
 
 
-def call(Map settings = [:]) {
+def call(Map settings = [imageTag: "local_molecule:vbc"]) {
 
 
     //def registry = "docker.artifactory.imp.ac.at"

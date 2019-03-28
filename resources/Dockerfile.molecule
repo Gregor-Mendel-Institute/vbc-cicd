@@ -9,7 +9,7 @@ ARG DOCKER_GID
 USER root
 
 # add shadow tools
-RUN apk add --ignore-cache shadow sudo
+RUN apk add --ignore-cache shadow sudo git
 
 # docker python package appears to be installed already
 

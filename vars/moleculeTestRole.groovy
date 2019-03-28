@@ -37,8 +37,6 @@ def call(Map params = [:]) {
     agentLabels = agentLabels.join(' && ')
 
 
-
-
     //def roleDirs = []
     //def roleScenarios = []
     //def roleBaseDir = null
@@ -66,7 +64,6 @@ def call(Map params = [:]) {
                     echo "checking out for Project '${roleName}' in '${multibranchProjectName}'"
                     // get the code from a git repository
                     //checkout scm
-                    //checkout([$class: 'GitSCM', extensions: [[$class: 'CleanBeforeCheckout'], [$class: 'RelativeTargetDirectory', relativeTargetDir: 'role-ntp']]])
                     checkout([
                             $class: 'GitSCM',
                             branches: scm.branches,
@@ -74,8 +71,6 @@ def call(Map params = [:]) {
                             extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: roleName]], // [$class: 'WipeWorkspace'],  breaks things?
                             userRemoteConfigs: scm.userRemoteConfigs
                     ])
-
-                    //relativeTargetDir('checkout-folder')
                 }
             }
             // FIXME here the previously built container can be used
@@ -89,27 +84,9 @@ def call(Map params = [:]) {
                 }
 
                 steps {
-                    echo "running molecule in this env:"
-                    sh "id"
-                    sh "ansible --version"
-                    sh "molecule --version"
-
-                    echo "running molecule scenarios: ${moleculeScenarios}"
                     script {
-                        // set debug flag dependeing on build params
-                        def moleculeDebugFlag = params.RUN_TESTS ? "--debug" : ""
-                        for (scenario in moleculeScenarios) {
-                            echo "==================== BEGIN scenario ${scenario} ===================="
-                            // docker older 17.12 does not like dir() {  } here, we might run on RHEL with old docker...
-                            // sudo is necessary, as we need a new login shell with all our group memberships
-                            sh "cd ${roleName} && sudo -u molecule molecule ${moleculeDebugFlag} test -s ${scenario}"
-                            // see multiline indent https://stackoverflow.com/questions/19882849/strip-indent-in-groovy-multiline-strings
-                            echo "==================== END scenario ${scenario} ===================="
-                        }
+                        runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios])
                     }
-                    // collect the test results from all scenarios
-                    junit keepLongStdio: true, testResults: '**/molecule/*/junit.xml'
-
                 }
             }
         }
@@ -117,7 +94,6 @@ def call(Map params = [:]) {
         post {
             always {
                 // notify build results, see https://jenkins.io/blog/2016/07/18/pipline-notifications/
-                echo "sending build notifications"
                 sendBuildNotification currentBuild: currentBuild
             }
             changed {
