@@ -1,0 +1,7 @@
+<p>
+    Execute Molecule tests on an Ansible role.
+</p>
+
+<!--
+vim: ft=html
+-->

@@ -1,0 +1,67 @@
+pipeline {
+  
+//  agent {
+//    dockerfile {
+//      // see https://jenkins.io/doc/book/pipeline/syntax/
+//      label 'docker'
+//      filename 'Dockerfile.molecule'
+//      args '-v /var/run/docker.sock:/var/run/docker.sock'
+//    }
+//  }
+// FIXME this must be built out of scope beforehand 
+      agent {
+        docker {
+          label 'docker'
+          image 'molecule:vbc'
+          args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+      }
+  stages {
+     stage('checkout') { // for display purposes
+       steps {
+         // get the code from a git repository
+         checkout scm 
+       }
+    }
+    // FIXME here the previously built container can be used
+    stage('molecule test') {
+      steps {
+        echo "would be doing some molecule here"
+        sh "id"
+        sh "whoami"
+        sh "pwd"
+        sh "ls -la"
+        sh "molecule"
+        sh "cd role-ntp && ls -la && sudo -u molecule molecule test"
+
+        // collect the test results from all scenarios
+        junit keepLongStdio: true, testResults: '**/molecule/*/junit.xml'
+
+      }
+    }
+  }
+  // post block is executed after all the stages/steps in the pipeline
+  post {
+      always {
+          // notify build results, see https://jenkins.io/blog/2016/07/18/pipline-notifications/
+          // notifyBuild(currentBuild.result)
+          echo "this will always show up"
+      }
+      changed {
+          echo "build changed"
+      }
+      aborted {
+          echo "build aborted"
+      }
+      failure {
+          echo "build failed"
+      }
+      success {
+          echo "build is success"
+      }
+      unstable {
+          echo "build is unstable"
+      }
+  }
+}
+
