@@ -1,16 +1,7 @@
-def bitbucketUrl = "https://bitbucket.imp.ac.at"
-def bitbucketCredentials = "svc-bitbucket-access-user-passwd"
-def bitbucketRepoOwner = "IAB"
-def bitbucketRepoName = "cookiecutter-molecule"
 
+def cicdLib = cicdLibConfig
 
-
-// library settings
-def libName = 'ansible-cicd'
-def libBranchName = "job_dsl_setup"
-def libGitRepo = "ssh://git@bitbucket.imp.ac.at:7991/iab/ansible-cicd.git"
-def libGitCredentialsId = "dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3"
-
+def cookiecutterRepo = cookiecutterRepoConfig
 
 multibranchPipelineJob("CookiecutterMolecule") {
 
@@ -35,14 +26,14 @@ multibranchPipelineJob("CookiecutterMolecule") {
             source {
 // Discovers branches and/or pull requests from a specific repository in either Bitbucket Cloud or a Bitbucket Server instance.
                 bitbucket {
-                    serverUrl(bitbucketUrl)
+                    serverUrl(cookiecutterRepo.url)
                     // Specify the name of the Bitbucket Team or Bitbucket User Account.
-                    repoOwner(bitbucketRepoOwner)
+                    repoOwner(cookiecutterRepo.repoOwner)
                     // The repository to scan.
-                    repository(bitbucketRepoName)
+                    repository(cookiecutterRepo.repoName)
 
                     // credentials for API access and checkouts
-                    credentialsId(bitbucketCredentials)
+                    credentialsId(cookiecutterRepo.credentials)
 
                     traits {
                         wipeWorkspaceTrait()
@@ -116,10 +107,9 @@ multibranchPipelineJob("CookiecutterMolecule") {
             trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
         }
 
-
         scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
             // use ssh with these credentials for the actual checkout
-            credentialsId('dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3')
+            credentialsId(cookiecutterRepo.sshCredentials)
         }
     }
 
@@ -128,10 +118,10 @@ multibranchPipelineJob("CookiecutterMolecule") {
             libraries {
                 libraryConfiguration {
                     // An identifier you pick for this library, to be used in the @Library annotation.
-                    name(libName)
+                    name(cicdLib.name)
 
                     // A default version of the library to load if a script does not select another.
-                    defaultVersion(libBranchName) // this is the git tag, make sure to have branch/tag discovery
+                    defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
 
                     // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
                     //allowVersionOverride(boolean value)
@@ -145,8 +135,8 @@ multibranchPipelineJob("CookiecutterMolecule") {
                         modernSCM {
                             scm {
                                 git {
-                                    remote(libGitRepo)
-                                    credentialsId(libGitCredentialsId)
+                                    remote(cicdLib.gitRepo)
+                                    credentialsId(cicdLib.gitCredentialsId)
 
                                     traits {
                                         gitBranchDiscovery()

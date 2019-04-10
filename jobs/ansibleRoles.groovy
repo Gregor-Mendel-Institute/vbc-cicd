@@ -1,24 +1,14 @@
-def bitbucketUrl = "https://bitbucket.imp.ac.at"
-def bitbucketCredentials = "svc-bitbucket-access-user-passwd"
 
-def bitbucketOrgs = [
-        [owner: "IAB", name:"IT Ansible Baseline", descrition: "Baseline components for System Deployment" ],
-        [owner: "IAA", name:"IT Ansible Apps", descrition: "Application components for System Deployment" ],
-        [owner: "IAO", name:"IT Ansible Ops", descrition: "Operations Tasks and Tooling" ],
-        [owner: "CLIP", name:"CLIP Ansible Roles", descrition: "CLIP related Ansible roles" ]
-]
 
-def libName = "ansible-cicd"
-def libVersion = "job_dsl_setup"
-def libGitRepo = "ssh://git@bitbucket.imp.ac.at:7991/iab/ansible-cicd.git"
-def libGitCredentialsId = "dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3"
-
+def repoUrl = bitbucketUrl
+def repoCredentials = bitbucketCredentials
+def cicdLib = cicdLibConfig
 
 def orgJobs = []
-for (org in bitbucketOrgs) {
+for (org in ansibleBitbucketOrgs) {
     def orgJob = organizationFolder("${org.owner}") {
         displayName("${org.name}")
-        description("${org.descrition}")
+        description("${org.description}")
         triggers {
             bitbucketPush()
             periodicFolderTrigger {
@@ -35,18 +25,18 @@ for (org in bitbucketOrgs) {
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
-                serverUrl("$bitbucketUrl")
+                serverUrl("${repoUrl}")
 
                 // credentials for API access and checkouts
-                credentialsId("$bitbucketCredentials")
+                credentialsId("${repoCredentials}")
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
                 traits {
                     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
-                        includes("role-*")
-                        excludes("")
+                        includes("${org.includePattern}")
+                        excludes("${org.excludePattern}")
                     }
                 }
             }
@@ -64,10 +54,10 @@ for (org in bitbucketOrgs) {
                 libraries {
                     libraryConfiguration {
                         // An identifier you pick for this library, to be used in the @Library annotation.
-                        name(libName)
+                        name(cicdLib.name)
 
                         // A default version of the library to load if a script does not select another.
-                        defaultVersion(libVersion) // this is the git tag, make sure to have branch/tag discovery
+                        defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
 
                         // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
                         //allowVersionOverride(boolean value)
@@ -82,8 +72,8 @@ for (org in bitbucketOrgs) {
                             modernSCM {
                                 scm {
                                     git {
-                                        remote(libGitRepo)
-                                        credentialsId(libGitCredentialsId)
+                                        remote(cicdLib.gitRepo)
+                                        credentialsId(cicdLib.gitCredentialsId)
 
                                         traits {
                                             gitBranchDiscovery()
@@ -126,6 +116,11 @@ for (org in bitbucketOrgs) {
 
             // discover tags, if we release versions
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.TagDiscoveryTrait' {
+            }
+
+            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
+                // use ssh with these credentials for the actual checkout
+                credentialsId(bitbucketSshCredentials)
             }
 
         }
