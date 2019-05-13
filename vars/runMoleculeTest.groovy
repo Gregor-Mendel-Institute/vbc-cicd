@@ -27,19 +27,13 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"]]) {
 
         // shorten ID, as it will be used also as default hostname in container (maxsize hostname is 64 chars)
         def uniqueTag = sha1(file: tagFile).take(16)
-        def envData = [INSTANCE_ID: "${uniqueTag}"]
-
-        writeYaml file:"${roleName}/env_data.yml", data: envData
-        //FIXME writeYaml is stupid and does not add document-start '---', yaml linter will complain later
-        sh "echo '---' > ${roleName}/.env.yml && cat ${roleName}/env_data.yml >> ${roleName}/.env.yml; rm ${roleName}/env_data.yml"
-
-        env.INSTANCE_ID = envData.INSTANCE_ID
+        env.INSTANCE_ID = uniqueTag
 
         echo "==================== BEGIN scenario ${scenario} ===================="
         sh 'echo "my instance id is $INSTANCE_ID"'
         // docker older 17.12 does not like dir() {  } here, we might run on RHEL with old docker...
         // sudo is necessary, as we need a new login shell with all our group memberships
-        sh "cd ${roleName} && sudo -u molecule molecule ${moleculeDebugFlag} test -s ${scenario}"
+        sh "cd ${roleName} && sudo --preserve-env -u molecule molecule ${moleculeDebugFlag} test -s ${scenario}"
         // see multiline indent https://stackoverflow.com/questions/19882849/strip-indent-in-groovy-multiline-strings
         echo "==================== END scenario ${scenario} ===================="
     }
