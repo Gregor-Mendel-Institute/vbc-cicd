@@ -2,6 +2,7 @@
 
 def repoUrl = bitbucketUrl
 def repoCredentials = bitbucketCredentials
+def repoCheckoutCredentials = bitbucketSshCredentials
 def cicdLib = cicdLibConfig
 
 def orgJobs = []
@@ -120,7 +121,7 @@ for (org in ansibleBitbucketOrgs) {
 
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                 // use ssh with these credentials for the actual checkout
-                credentialsId(bitbucketSshCredentials)
+                credentialsId(repoCheckoutCredentials)
             }
 
         }

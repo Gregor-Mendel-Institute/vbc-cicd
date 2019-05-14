@@ -91,6 +91,7 @@ pipeline {
                            additionalParameters: [
                                bitbucketUrl: bitbucketUrl,
                                bitbucketCredentials: bitbucketCredentials,
+                               bitbucketSshCredentials: bitbucketSshCredentials,
                                cicdLibConfig: cicdLibSettings,
                                ansibleBitbucketOrgs: ansibleBitbucketOrgs,
                                cookiecutterRepoConfig: cookiecutterRepoConfig

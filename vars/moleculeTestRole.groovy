@@ -22,6 +22,12 @@ def call(Map params = [:]) {
     // default for setting MOLECULE_DEBUG env
     def moleculeDebug = params.get("moleculeDebug", false)
 
+    // additional credentials were handed in as list: https://jenkins.io/doc/pipeline/steps/credentials-binding/
+    def credentials = params.get("credentials", [])
+    for (cred in credentials) {
+        echo "using credential: ${cred}"
+    }
+
     // default agent labels for the build job: docker, centos
     def defaultAgentLabels = ["docker", "centos"]
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
@@ -85,7 +91,9 @@ def call(Map params = [:]) {
 
                 steps {
                     script {
-                        runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios])
+                        withCredentials(credentials) {
+                            runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios])
+                        }
                     }
                 }
             }
