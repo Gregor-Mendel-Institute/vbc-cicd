@@ -28,6 +28,9 @@ def call(Map params = [:]) {
         echo "using credential: ${cred}"
     }
 
+    // allow job concurrency
+    def concurrency = params.get("concurrency", true)
+
     // default agent labels for the build job: docker, centos
     def defaultAgentLabels = ["docker", "centos"]
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
@@ -52,6 +55,9 @@ def call(Map params = [:]) {
             node {
                 label agentLabels
             }
+        }
+        options {
+            timestamps()
         }
         parameters {
             booleanParam(name: 'MOLECULE_DEBUG', defaultValue: moleculeDebug, description: 'enable Molecule debug log')
@@ -92,7 +98,7 @@ def call(Map params = [:]) {
                 steps {
                     script {
                         withCredentials(credentials) {
-                            runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios])
+                            runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios, concurrency: concurrency])
                         }
                     }
                 }
