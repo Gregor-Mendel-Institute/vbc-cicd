@@ -17,6 +17,12 @@ def call(Map settings = [:]) {
             // every fifteen minutes (perhaps at :07, :22, :37, :52)
             pollSCM 'H/15 * * * *'
         }
+        environment {
+            GIT_AUTHOR_NAME = 'Jenkins'
+            GIT_AUTHOR_EMAIL = 'cookiecutter@jenkins.example.com'
+            GIT_COMMITTER_NAME = 'Jenkins'
+            GIT_COMMITTER_EMAIL = 'cookiecutter@jenkins.example.com'
+        }
         parameters {
             booleanParam(name: 'MOLECULE_DEBUG', defaultValue: false, description: 'enable Molecule debug log')
         }
