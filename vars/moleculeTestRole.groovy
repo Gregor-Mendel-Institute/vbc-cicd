@@ -127,29 +127,4 @@ def call(Map params = [:]) {
             }
         }
     }
-
-    /**
-    def labels = params.containsKey('labels') ? params.labels : "docker"
-
-    // shamelessly stolen from here https://github.com/jenkins-infra/pipeline-library/blob/master/vars/buildPlugin.groovy#L10
-    properties([
-            durabilityHint('PERFORMANCE_OPTIMIZED'),
-            buildDiscarder(logRotator(numToKeepStr: '5')),
-    ])
-
-
-
-    node(labels) {
-        stage("Checkout") {
-            scm checkout
-        }
-
-        // Requires the Docker Pipeline plugin to be installed
-        docker.image('molecule:vbc').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-            stage('Uptime') {
-                sh 'uptime'
-            }
-        }
-    }
-*/
 }
