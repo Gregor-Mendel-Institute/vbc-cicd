@@ -7,6 +7,7 @@ def cicdLib = cicdLibConfig
 
 def orgJobs = []
 for (org in ansibleBitbucketOrgs) {
+    def buildTags = org.buildTags
     def orgJob = organizationFolder("${org.owner}") {
         displayName("${org.name}")
         description("${org.description}")
@@ -123,6 +124,18 @@ for (org in ansibleBitbucketOrgs) {
                 // use ssh with these credentials for the actual checkout
                 credentialsId(repoCheckoutCredentials)
             }
+
+           if (buildTags) {
+           //if (true) {
+               // automatically build tags newer than 7 days (604800000 millis)
+               def buildStrategies = it / buildStrategies 
+               buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
+               }
+               buildStrategies << 'jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl' {
+                   atLeastMillis(1)
+                   atMostMillis(604800000)
+               }
+           }
 
         }
     }
