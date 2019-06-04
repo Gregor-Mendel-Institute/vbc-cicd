@@ -72,7 +72,7 @@ def call(Map settings = [:]) {
                 }
                 steps {
                     script {
-                        // shared implementation from ansible-cicd
+                        // shared implementation from vbc-cicd
                         runMoleculeTest("role-dummy", [debug: params.MOLECULE_DEBUG, scenarios: ["default"]])
                     }
                 }

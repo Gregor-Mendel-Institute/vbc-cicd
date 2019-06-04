@@ -37,9 +37,9 @@ pipeline {
 
                     // shared CICD library config, could also do version: scmVars.GIT_COMMIT
                     def cicdLibSettings = [
-                            name: 'ansible-cicd',
+                            name: 'vbc-cicd',
                             version: scmVars.GIT_BRANCH,
-                            gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/ansible-cicd.git",
+                            gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git",
                             gitCredentialsId: bitbucketSshCredentials
                     ]
 
@@ -47,24 +47,18 @@ pipeline {
                     echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
                     // Bitbucket organizations to scan for roles
-                    def ansibleBitbucketOrgs = [
+                    def vbcBitbucketOrgs = [
                         [owner: "IAB",
                           name:"IT Ansible Baseline",
                           description: "Baseline components for System Deployment",
-                          excludePattern: "",
-                          includePattern: "role-*",
-                          buildTags: false ],
-                        [owner: "IAA",
-                          name:"IT Ansible Apps",
-                          description: "Application components for System Deployment",
-                          excludePattern: "",
-                          includePattern: "role-*",
+                          excludePattern: "vbc-cicd",
+                          includePattern: "*",
                           buildTags: false ],
                         [owner: "IAO",
                           name:"IT Ansible Ops",
                           description: "Operations Tasks and Tooling",
                           excludePattern: "",
-                          includePattern: "role-*",
+                          includePattern: "*",
                           buildTags: false ],
                         [owner: "VBC",
                           name:"VBC repos",
@@ -103,7 +97,7 @@ pipeline {
                                bitbucketCredentials: bitbucketCredentials,
                                bitbucketSshCredentials: bitbucketSshCredentials,
                                cicdLibConfig: cicdLibSettings,
-                               ansibleBitbucketOrgs: ansibleBitbucketOrgs,
+                               vbcBitbucketOrgs: vbcBitbucketOrgs,
                                cookiecutterRepoConfig: cookiecutterRepoConfig
                            ]
                  }
