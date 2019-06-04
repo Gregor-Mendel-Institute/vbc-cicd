@@ -86,7 +86,8 @@ def call(Map params = [:]) {
                             echo 'my pwd:'
                             sh 'pwd'
                             echo "running tests as ${testCmd}"
-                            sh "${testCmd}"
+                            // dont fail on error, we'll be UNSTABLE with failed tests
+                            def test_status = sh returnStatus: true, script: testCmd
                         }
                     }
                     // collect test results
