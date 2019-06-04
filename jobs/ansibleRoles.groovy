@@ -6,7 +6,7 @@ def repoCheckoutCredentials = bitbucketSshCredentials
 def cicdLib = cicdLibConfig
 
 def orgJobs = []
-for (org in ansibleBitbucketOrgs) {
+for (org in vbcBitbucketOrgs) {
     def buildTags = org.buildTags
     def orgJob = organizationFolder("${org.owner}") {
         displayName("${org.name}")
@@ -16,7 +16,7 @@ for (org in ansibleBitbucketOrgs) {
             periodicFolderTrigger {
                 // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
                 // rescan every 15 mins
-                interval("15")
+                interval("60")
             }
         }
         authorization {
