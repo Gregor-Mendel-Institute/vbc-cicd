@@ -46,14 +46,17 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
                 // docker older 17.12 does not like dir() {  } here, we might run on RHEL with old docker...
                 // sudo is necessary, as we need a new login shell with all our group memberships
                 def moleculeCmd = "cd ${roleName} && sudo --preserve-env -u molecule molecule ${moleculeDebugFlag} test -s ${localScenario}"
+				def test_status = null
                 if (params.concurrency == false) {
                     // acquire lock per role name
                     lock("MoleculeAnsibleRole_${roleName}") {
-                        sh moleculeCmd
+                        // dont fail on error, we'll be UNSTABLE with failed tests
+                        test_status = sh returnStatus:true, script: moleculeCmd
                     }
                 }
                 else {
-                    sh moleculeCmd
+                    // dont fail on error, we'll be UNSTABLE with failed tests
+                    test_status = sh returnStatus:true, script: moleculeCmd
                 }
                 // see multiline indent https://stackoverflow.com/questions/19882849/strip-indent-in-groovy-multiline-strings
                 echo "==================== END scenario ${localScenario} ===================="
