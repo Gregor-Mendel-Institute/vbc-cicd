@@ -4,9 +4,9 @@
 //
 // will be pushed to docker.artifactory.imp.ac.at/it/myImage:latest
 // other params:
-//   testCmd: a script to run tests (default: ./test.sh, MUST produce one or more files matching testResultPattern output files)
+//   testCmd: a script to run tests (default: ./test.sh)
 //      to disable testing: set to null
-//   testResultPattern: search pattern for junit style xml test results: default: **/junit.xml,**/TEST*.xml
+//   testResultPattern: search pattern for junit style xml test results: default: **/junit.xml,**/TEST*.xml This pattern will be searched inside container
 //   pushRegistry: default: "docker.artifactory.imp.ac.at"
 //   pushRegistryCredentials: "defaults to credentials for artifactory"
 //   pushRegistryNamespace: default: "it"
@@ -90,10 +90,12 @@ def call(Map params = [:]) {
                             echo "running tests as ${testCmd}"
                             // dont fail on error, we'll be UNSTABLE with failed tests
                             def test_status = sh returnStatus: true, script: testCmd
+                            
+                             // collect test results
+                             // https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
+                            junit keepLongStdio: true, allowEmptyResults: true, testResults: testResultPattern
                         }
                     }
-                    // collect test results
-                   junit keepLongStdio: true, testResults: testResultPattern
                 }
             }
             stage('push') {
