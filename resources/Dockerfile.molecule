@@ -1,6 +1,6 @@
 # docker build --build-arg MOLECULE_UID=$(id -u svc_jenkins_docker) --build-arg DOCKER_GID=$(getent group docker | cut -d: -f3)  --build_arg JENKINS_GID=$(id -g svc_jenkins_docker) -t molecule:vbc  -f Dockerfile.molecule .
 
-FROM "quay.io/ansible/molecule:2.20"
+FROM "registry.access.redhat.com/ubi8/python-36:latest"
 
 ARG MOLECULE_UID
 ARG JENKINS_GID
@@ -8,16 +8,21 @@ ARG DOCKER_GID
 
 USER root
 
-# add shadow tools
-RUN apk add --ignore-cache shadow sudo git
+# add docker ce repo, just for the cli + install packages
+RUN wget -O /etc/yum.repos.d/docker-ce.repo https://download.docker.com/linux/centos/docker-ce.repo && yum install -y sudo docker-ce-cli
 
-# docker python package appears to be installed already
+# install ansible + molecule and friends
+# anyconfig > 0.9.5 seems broken
+RUN pip install molecule==2.22rc3 ansible==2.8.1 anyconfig==0.9.5 docker
 
 # set molecule uid to given number --build-arg MOLECULE_UID=1234, DOCKER_GID=992
-RUN groupadd --gid ${DOCKER_GID} host-docker-grp && groupadd --gid ${JENKINS_GID} host-jenkins-grp && useradd --system -m -N --uid ${MOLECULE_UID} --gid ${JENKINS_GID} --groups host-docker-grp,wheel molecule
-
+RUN groupadd --gid ${DOCKER_GID} host-docker-grp && groupadd --gid ${JENKINS_GID} host-jenkins-grp && usermod  --uid ${MOLECULE_UID} --gid ${JENKINS_GID} --groups host-docker-grp,wheel default && chown -R default /opt/app-root
 # allow molecule user to escape jenkins prison
-RUN echo "molecule ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN echo "default ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-USER molecule
+# add 1password cli
+ADD https://cache.agilebits.com/dist/1P/op/pkg/v0.5.6-003/op_linux_amd64_v0.5.6-003.zip /tmp
+RUN unzip /tmp/op_linux_amd64_v0.5.6-003.zip && cp op /opt/app-root/bin/op
+
+USER default
 
