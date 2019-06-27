@@ -76,7 +76,7 @@ def call(Map params = [:]) {
             stage('build') {
                 steps {
                     script {
-                        docker.withRegistry(pullRegistry, pullRegistryCredentials) {
+                        docker.withRegistry("https://${pullRegistry}", pullRegistryCredentials) {
                             productImage = docker.build(imgRepo)
                         }
                     }
@@ -110,7 +110,7 @@ def call(Map params = [:]) {
                 }
                 steps {
                     script {
-                        docker.withRegistry(pushRegistry, pushRegistryCredentials) {
+                        docker.withRegistry("https://${pushRegistry}", pushRegistryCredentials) {
                             productImage.push('latest')
                             productImage.push("${TAG_NAME}")
                         }
