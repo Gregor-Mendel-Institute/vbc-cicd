@@ -34,8 +34,8 @@ def call(Map params = [:]) {
     // allow job concurrency
     def concurrency = params.get("concurrency", true)
 
-    // default agent labels for the build job: docker, centos
-    def defaultAgentLabels = ["docker", "centos"]
+    // default agent labels for the build job: docker, rhel8
+    def defaultAgentLabels = ["dockerce", "rhel8"]
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
 
     echo "checking agentLabels, so far: ${agentLabels}"

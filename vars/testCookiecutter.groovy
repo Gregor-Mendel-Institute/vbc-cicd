@@ -9,7 +9,7 @@ def call(Map settings = [:]) {
     pipeline {
         agent {
             node {
-                label 'docker && centos'
+                label 'dockerce'
             }
         }
         triggers {
