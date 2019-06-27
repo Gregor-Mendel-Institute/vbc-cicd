@@ -1,0 +1,16 @@
+---
+provisioner:
+  name: ansible
+  # inject jenkins secrets
+  options:
+    extra-vars: "@${ONEPASS_VARS:-/missing/1password/credentials.file}"
+  env:
+    ONEPASS_VARS: "${ONEPASS_VARS}"
+verifier:
+  name: testinfra
+  env:
+    INSTANCE_ID: "${INSTANCE_ID:-local}"
+  lint:
+    name: flake8
+  options:
+    junit-xml: junit.xml

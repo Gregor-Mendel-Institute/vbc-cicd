@@ -8,6 +8,13 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
 
     echo "running molecule scenarios: ${params.scenarios}"
 
+    def moleculeBaseConfigFlag = ""
+    if(params.moleculeBaseConfig) {
+        // write molecule base config from library resources to job's workspace
+        writeFile file: "${roleName}/${params.moleculeBaseConfig}", text: libraryResource(params.moleculeBaseConfig)
+        moleculeBaseConfigFlag = "--base-config ${params.moleculeBaseConfig}"
+    }
+
     // set debug flag dependeing on build params
     def moleculeDebugFlag = params.debug ? "--debug" : ""
     def parallelStages = [:]
@@ -45,8 +52,8 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
                 sh 'echo "my instance id is $INSTANCE_ID"'
                 // docker older 17.12 does not like dir() {  } here, we might run on RHEL with old docker...
                 // sudo is necessary, as we need a new login shell with all our group memberships
-                def moleculeCmd = "cd ${roleName} && sudo --preserve-env -u molecule molecule ${moleculeDebugFlag} test -s ${localScenario}"
-				def test_status = null
+                def moleculeCmd = "cd ${roleName} && sudo --preserve-env -u default bash -c 'source /opt/app-root/bin/activate && molecule ${moleculeBaseConfigFlag} ${moleculeDebugFlag} test -s ${localScenario}'"
+		def test_status = null
                 if (params.concurrency == false) {
                     // acquire lock per role name
                     lock("MoleculeAnsibleRole_${roleName}") {
