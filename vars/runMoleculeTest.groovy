@@ -57,12 +57,16 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
                     // acquire lock per role name
                     lock("MoleculeAnsibleRole_${roleName}") {
                         // dont fail on error, we'll be UNSTABLE with failed tests
-                        test_status = sh returnStatus:true, script: moleculeCmd
+                        ansiColor('xterm') {
+                            test_status = sh returnStatus:true, script: moleculeCmd
+                        }
                     }
                 }
                 else {
                     // dont fail on error, we'll be UNSTABLE with failed tests
-                    test_status = sh returnStatus:true, script: moleculeCmd
+                    ansiColor('xterm') {
+                        test_status = sh returnStatus:true, script: moleculeCmd
+                    }
                 }
                 // see multiline indent https://stackoverflow.com/questions/19882849/strip-indent-in-groovy-multiline-strings
                 echo "==================== END scenario ${localScenario} ===================="
