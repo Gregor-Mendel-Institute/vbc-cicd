@@ -46,13 +46,12 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
 
                 // shorten ID, as it will be used also as default hostname in container (maxsize hostname is 64 chars)
                 def uniqueTag = sha1(file: tagFile).take(16)
-                env.INSTANCE_ID = uniqueTag
 
                 echo "==================== BEGIN scenario ${localScenario} ===================="
-                sh 'echo "my instance id is $INSTANCE_ID"'
+                sh "echo 'my instance id is ${uniqueTag}'"
                 // docker older 17.12 does not like dir() {  } here, we might run on RHEL with old docker...
                 // sudo is necessary, as we need a new login shell with all our group memberships
-                def moleculeCmd = "cd ${roleName} && sudo --preserve-env -u default bash -c 'source /opt/app-root/bin/activate && molecule ${moleculeBaseConfigFlag} ${moleculeDebugFlag} test -s ${localScenario}'"
+                def moleculeCmd = "export INSTANCE_ID=${uniqueTag} && cd ${roleName} && sudo --preserve-env -u default bash -c 'source /opt/app-root/bin/activate && molecule ${moleculeBaseConfigFlag} ${moleculeDebugFlag} test -s ${localScenario}'"
 		def test_status = null
                 if (params.concurrency == false) {
                     // acquire lock per role name
