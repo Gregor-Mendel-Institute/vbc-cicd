@@ -7,6 +7,7 @@
 //   testCmd: a script to run tests (default: ./test.sh)
 //      to disable testing: set to null
 //   testResultPattern: search pattern for junit style xml test results: default: **/junit.xml,**/TEST*.xml This pattern will be searched inside container
+//   pushBranches: list of branches to push (tagged by branch name), default: develop
 //   pushRegistry: default: "docker.artifactory.imp.ac.at"
 //   pushRegistryCredentials: "defaults to credentials for artifactory"
 //   pushRegistryNamespace: default: "it"
@@ -24,6 +25,7 @@ def call(Map params = [:]) {
     def pullRegistry = params.get("pullRegistry", "registry.redhat.io")
     def pullRegistryCredentials = params.get("pullRegistryCredentials", "redhat-registry-service-account")
 
+    def pushBranches = params.get("pushBranches", ["develop"])
     def pushRegistry = params.get("pushRegistry", "docker.artifactory.imp.ac.at")
     def pushRegistryCredentials = params.get("pushRegistryCredentials", "jenkins_artifactory_creds")
     def pushRegistryNamespace = params.get("pushRegistryNamespace", "it")
@@ -31,6 +33,8 @@ def call(Map params = [:]) {
     def testCmd = params.get("testCmd", "./test.sh")
     def testResultPattern = params.get("testResultPattern", "**/junit.xml,**/TEST*.xml")
     def productionBranch = params.get("productionBranch", "production")
+
+    def towerConfigs = params.get("tower", [:])
 
     // default agent labels for the build job: docker, rhel8
     def defaultAgentLabels = ["dockerce", "rhel8"]
@@ -40,6 +44,8 @@ def call(Map params = [:]) {
 
     def imgRepo = "${pushRegistry}/${pushRegistryNamespace}/${imageName}"
     def scmVars = null
+    def isPushBranch = false
+    def isTagBuild = false
     def productImage = null
     pipeline {
 
@@ -61,6 +67,12 @@ def call(Map params = [:]) {
                     // get the code from a git repository
                     script {
                         scmVars = checkout scm
+                        echo "scmVars: ${scmVars}"
+                        isPushBranch = pushBranches.contains(scmVars.GIT_BRANCH)
+                        if (env.TAG_NAME) {
+                            isTagBuild = env.TAG_NAME
+                            echo "TAG_NAME=${env.TAG_NAME}"
+                        }
                     }
                 }
             }
@@ -98,14 +110,62 @@ def call(Map params = [:]) {
             }
             stage('push') {
                 when {
-                    buildingTag()
+                    anyOf {
+                        // always push tags
+                        buildingTag()
+                        expression {
+                            // should we push the current branch?
+                            return isPushBranch
+                        }
+                    }
                 }
                 steps {
                     script {
                         docker.withRegistry("https://${pushRegistry}", pushRegistryCredentials) {
-                            productImage.push('latest')
-                            productImage.push("${TAG_NAME}")
+                            // push image, if we're building a tag
+                            if (isTagBuild) {
+                                productImage.push('latest')
+                                productImage.push(TAG_NAME)
+                            }
+                            // push image with branch name
+                            else if (isPushBranch) {
+                                productImage.push(scmVars.GIT_BRANCH)
+                            }
                         }
+                    }
+                }
+            }
+            stage('tower') {
+                // deploy when tagged and tower is configured
+                when {
+                    anyOf {
+                        allOf {
+                            expression {
+                                return isPushBranch && towerConfigs[scmVars.GIT_BRANCH]
+                            }
+                        }
+                        allOf {
+                            buildingTag()
+                            expression {
+                                return towerConfigs['tags']
+                            }
+                        }
+                    }
+                }
+                steps {
+                    script {
+                        def configKey = null
+                        if (isPushBranch) {
+                            configKey = scmVars.GIT_BRANCH
+                        }
+                        else if(isTagBuild) {
+                            configKey = 'tags'
+                        }
+                        echo "tower config key is: ${configKey}"
+                        def config = towerConfigs[configKey]
+                        def jobName = config['jobName']
+                        echo "trigger tower job '${jobName}' with settings(${configKey}): ${config}"
+                        runTowerJob(jobName, config)
                     }
                 }
             }
