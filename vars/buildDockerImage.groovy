@@ -11,10 +11,20 @@
 //   pushRegistry: default: "docker.artifactory.imp.ac.at"
 //   pushRegistryCredentials: "defaults to credentials for artifactory"
 //   pushRegistryNamespace: default: "it"
+//   tower: tower configurations to trigger Tower job runs, dict (other config params see runTowerJob.groovy):
+//      [
+//         tags: [jobName: 'my Job Template name],
+//         develop: [jobName: 'my Thing TDE'],
+//         branch2: [jobName: 'my special job']
+//       ]
+//   containerImages: additional images to build, (same namespace, tag, registry as above, tests default to global params) list of dicts:
+//     [
+//       [mageName: "", dockerFile: "relative/to/Dockerfile", dockerContext: "relative/to/context", testResultPattern: "", testCmd: ""] 
+//     ]
 //   agentLabels: additional labels to run build job on. (will be appended to "dockerce")
 
-def call(Map params = [:]) {
 
+def call(Map params = [:]) {
 
     // global var settings
     def projectParts = JOB_NAME.tokenize('/') as String[]
@@ -30,9 +40,10 @@ def call(Map params = [:]) {
     def pushRegistryCredentials = params.get("pushRegistryCredentials", "jenkins_artifactory_creds")
     def pushRegistryNamespace = params.get("pushRegistryNamespace", "it")
 
+    def containerImageConfigs = params.get("containerImages", [])
+
     def testCmd = params.get("testCmd", "./test.sh")
     def testResultPattern = params.get("testResultPattern", "**/junit.xml,**/TEST*.xml")
-    def productionBranch = params.get("productionBranch", "production")
 
     def towerConfigs = params.get("tower", [:])
 
@@ -41,12 +52,56 @@ def call(Map params = [:]) {
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
     echo "checking agentLabels: ${agentLabels}"
     agentLabels = agentLabels.join(' && ')
+    ///////////////////////////////////////////////////////////////////////////////////////
 
-    def imgRepo = "${pushRegistry}/${pushRegistryNamespace}/${imageName}"
     def scmVars = null
     def isPushBranch = false
     def isTagBuild = false
-    def productImage = null
+
+    // track all built / pushed docker images
+    def dockerBuilds = []
+    // build default Dockerfile config (in repo root)
+    def defaultImageConfig = [
+        imageName: imageName,
+        dockerFile: './Dockerfile',
+        dockerContext: '.',
+        pullRegistry: pullRegistry,
+        pullRegistryCredentials: pullRegistryCredentials,
+        pushRegistry: pushRegistry,
+        pushRegistryCredentials: pushRegistryCredentials,
+        pushRegistryNamespace: pushRegistryNamespace,
+        testCmd: testCmd,
+        testResultPattern: testResultPattern
+    ]
+    // add default image, if a name is defined
+    if (imageName) {
+        echo "adding default image config: ${defaultImageConfig}}"
+        dockerBuilds.add([name: imageName, config: defaultImageConfig, image: null])
+    }
+    else {
+        echo "no default image defined"
+    }
+    for (imageConfig in containerImageConfigs) {
+       if (!imageConfig['imageName']) {
+           error("image config is invalid (no imageName): ${imageConfig}")
+       }
+       def fullImageConfig = [:]
+       fullImageConfig.putAll(defaultImageConfig)
+       fullImageConfig.putAll(imageConfig)
+       echo "adding extra image config: ${fullImageConfig}"
+       dockerBuilds.add([name: fullImageConfig['imageName'], config: fullImageConfig, image: null])
+    }
+
+    def forAllBuilds = { Closure body ->
+        for (build in dockerBuilds) {
+            def name = build.name
+            def conf = build.config
+            def image = build.image
+
+            body(name, conf, image, build)
+        }
+    }
+
     pipeline {
 
         agent {
@@ -73,6 +128,7 @@ def call(Map params = [:]) {
                             isTagBuild = env.TAG_NAME
                             echo "TAG_NAME=${env.TAG_NAME}"
                         }
+
                     }
                 }
             }
@@ -80,31 +136,44 @@ def call(Map params = [:]) {
             stage('build') {
                 steps {
                     script {
-                        docker.withRegistry("https://${pullRegistry}", pullRegistryCredentials) {
-                            productImage = docker.build(imgRepo)
-                        }
+                        forAllBuilds({ name, conf, image, build ->
+                            echo "building image ${name}"
+                            docker.withRegistry("https://${conf.pullRegistry}", conf.pullRegistryCredentials) {
+                                def imgRepo = "${conf.pushRegistry}/${conf.pushRegistryNamespace}/${name}"
+                                def productImage = docker.build("${imgRepo}:${GIT_COMMIT}")
+                                build.putAll([image: productImage, repo: imgRepo])
+                            }
+                        })
                     }
                 }
             }
             stage('test') {
                 when {
                     // Only say hello if a "greeting" is requested
-                    expression { testCmd != null }
+                    expression { dockerBuilds.findAll { it.config.testCmd != null } != null }
                 }
                 steps {
                     script {
-                        productImage.inside() {  
-                            sh 'env'
-                            echo 'my pwd:'
-                            sh 'pwd'
-                            echo "running tests as ${testCmd}"
-                            // dont fail on error, we'll be UNSTABLE with failed tests
-                            def test_status = sh returnStatus: true, script: testCmd
-                            
-                             // collect test results
-                             // https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
-                            junit keepLongStdio: true, allowEmptyResults: true, testResults: testResultPattern
-                        }
+                        forAllBuilds({ name, conf, image ->
+                            echo "my config: ${conf}"
+                            echo "my testCmd: ${conf.testCmd}"
+                            if (conf.testCmd != null) {
+                                image.inside() {
+                                    echo "test environment in ${name}"
+                                    sh 'env'
+                                    sh 'pwd'
+                                    echo "running tests for image ${name} as ${conf.testCmd}"
+                                    // dont fail on error, we'll be UNSTABLE with failed tests
+                                    def test_status = sh returnStatus: true, script: conf.testCmd
+                                    // collect test results
+                                    // https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
+                                    junit keepLongStdio: true, allowEmptyResults: true, testResults: conf.testResultPattern
+                                }
+                            }
+                            else {
+                                echo "no tests defined for ${name}"
+                            }
+                        })
                     }
                 }
             }
@@ -113,25 +182,25 @@ def call(Map params = [:]) {
                     anyOf {
                         // always push tags
                         buildingTag()
-                        expression {
-                            // should we push the current branch?
-                            return isPushBranch
-                        }
+                        // should we push the current branch?
+                        expression { isPushBranch }
                     }
                 }
                 steps {
                     script {
-                        docker.withRegistry("https://${pushRegistry}", pushRegistryCredentials) {
-                            // push image, if we're building a tag
-                            if (isTagBuild) {
-                                productImage.push('latest')
-                                productImage.push(TAG_NAME)
+                        forAllBuilds({ name, conf, image ->
+                            docker.withRegistry("https://${conf.pushRegistry}", conf.pushRegistryCredentials) {
+                                // push image, if we're building a tag
+                                if (isTagBuild) {
+                                    image.push('latest')
+                                    image.push(TAG_NAME)
+                                }
+                                // push image with branch name
+                                else if (isPushBranch) {
+                                    image.push(scmVars.GIT_BRANCH)
+                                }
                             }
-                            // push image with branch name
-                            else if (isPushBranch) {
-                                productImage.push(scmVars.GIT_BRANCH)
-                            }
-                        }
+                        })
                     }
                 }
             }
