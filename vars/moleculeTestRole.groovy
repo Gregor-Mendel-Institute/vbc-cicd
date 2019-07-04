@@ -34,17 +34,10 @@ def call(Map params = [:]) {
     // allow job concurrency
     def concurrency = params.get("concurrency", true)
 
-    // default agent labels for the build job: docker, centos
-    def defaultAgentLabels = ["docker", "centos"]
+    // default agent labels for the build job: docker, rhel8
+    def defaultAgentLabels = ["dockerce", "rhel8"]
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
-
-    echo "checking agentLabels, so far: ${agentLabels}"
-    for (defaultLbl in defaultAgentLabels) {
-        if (agentLabels.contains(defaultLbl) == false) {
-            echo "adding label ${defaultLbl}, as it was missing but is required"
-            agentLabels.add(defaultLbl)
-        }
-    }
+    echo "checking agentLabels: ${agentLabels}"
     agentLabels = agentLabels.join(' && ')
 
     def moleculeBaseConfig = 'molecule_base_config.yml'

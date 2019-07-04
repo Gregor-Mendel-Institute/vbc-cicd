@@ -21,25 +21,21 @@ def call(Map params = [:]) {
 
     // params go here
     def imageName = params['imageName']
+    def pullRegistry = params.get("pullRegistry", "registry.redhat.io")
+    def pullRegistryCredentials = params.get("pullRegistryCredentials", "redhat-registry-service-account")
+
     def pushRegistry = params.get("pushRegistry", "docker.artifactory.imp.ac.at")
     def pushRegistryCredentials = params.get("pushRegistryCredentials", "jenkins_artifactory_creds")
     def pushRegistryNamespace = params.get("pushRegistryNamespace", "it")
+
     def testCmd = params.get("testCmd", "./test.sh")
     def testResultPattern = params.get("testResultPattern", "**/junit.xml,**/TEST*.xml")
     def productionBranch = params.get("productionBranch", "production")
 
-    // default agent labels for the build job: docker, centos
-    def defaultAgentLabels = ["dockerce"]
+    // default agent labels for the build job: docker, rhel8
+    def defaultAgentLabels = ["dockerce", "rhel8"]
     def agentLabels = params.get("agentLabels", defaultAgentLabels)
-
-    echo "checking agentLabels, so far: ${agentLabels}"
-    for (defaultLbl in defaultAgentLabels) {
-        if (agentLabels.contains(defaultLbl) == false) {
-            echo "adding label ${defaultLbl}, as it was missing but is required"
-            agentLabels.add(defaultLbl)
-        }
-    }
-
+    echo "checking agentLabels: ${agentLabels}"
     agentLabels = agentLabels.join(' && ')
 
     def imgRepo = "${pushRegistry}/${pushRegistryNamespace}/${imageName}"
@@ -72,7 +68,9 @@ def call(Map params = [:]) {
             stage('build') {
                 steps {
                     script {
-                        productImage = docker.build(imgRepo)
+                        docker.withRegistry("https://${pullRegistry}", pullRegistryCredentials) {
+                            productImage = docker.build(imgRepo)
+                        }
                     }
                 }
             }
@@ -104,8 +102,10 @@ def call(Map params = [:]) {
                 }
                 steps {
                     script {
-                        productImage.push('latest')
-                        productImage.push("${TAG_NAME}")
+                        docker.withRegistry("https://${pushRegistry}", pushRegistryCredentials) {
+                            productImage.push('latest')
+                            productImage.push("${TAG_NAME}")
+                        }
                     }
                 }
             }
