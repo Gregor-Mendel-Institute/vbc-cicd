@@ -4,9 +4,10 @@
 //
 // will be pushed to docker.artifactory.imp.ac.at/it/myImage:latest
 // other params:
-//   testCmd: a script to run tests (default: ./test.sh)
+//   test: Closure test implementation { dockerBuilds -> to Tests; } helpers: testScript(String scriptPath, String testPattern) 
+//   testCmd: DEPRECATED. a script to run tests (default: ./test.sh)
 //      to disable testing: set to null
-//   testResultPattern: search pattern for junit style xml test results: default: **/junit.xml,**/TEST*.xml This pattern will be searched inside container
+//   testResultPattern: DEPRECATED. search pattern for junit style xml test results: default: **/junit.xml,**/TEST*.xml This pattern will be searched inside container
 //   pushBranches: list of branches to push (tagged by branch name), default: develop
 //   pushRegistry: default: "docker.artifactory.imp.ac.at"
 //   pushRegistryCredentials: "defaults to credentials for artifactory"
@@ -19,10 +20,9 @@
 //       ]
 //   containerImages: additional images to build, (same namespace, tag, registry as above, tests default to global params) list of dicts:
 //     [
-//       [mageName: "", dockerFile: "relative/to/Dockerfile", dockerContext: "relative/to/context", testResultPattern: "", testCmd: ""] 
+//       [imageName: "my-extra-imp", dockerFile: "relative/to/Dockerfile", dockerContext: "relative/to/context"] 
 //     ]
 //   agentLabels: additional labels to run build job on. (will be appended to "dockerce")
-
 
 def call(Map params = [:]) {
 
@@ -42,8 +42,16 @@ def call(Map params = [:]) {
 
     def containerImageConfigs = params.get("containerImages", [])
 
-    def testCmd = params.get("testCmd", "./test.sh")
+    def testCmd = params.get("testCmd", null)
     def testResultPattern = params.get("testResultPattern", "**/junit.xml,**/TEST*.xml")
+    def testClos = params.get("test", null)
+    if (testCmd && testClos) {
+        error("cannot handle both arguments 'test' and testCmd(DEPRECATED). Recommended is test: testScript('./path/to/Script', '**/TEST*.xml') ")
+    }
+    else if (testCmd) {
+        unstable("testCmd is DEPRECATED. Please use test: testScript('./path/to/Script', '**/TEST*.xml')")
+        testClos = testScript(testCmd, testResultPattern, imageName)
+    }
 
     def towerConfigs = params.get("tower", [:])
 
@@ -57,9 +65,9 @@ def call(Map params = [:]) {
     def scmVars = null
     def isPushBranch = false
     def isTagBuild = false
-
+    def tagName = null
     // track all built / pushed docker images
-    def dockerBuilds = []
+    def dockerBuilds = [:]
     // build default Dockerfile config (in repo root)
     def defaultImageConfig = [
         imageName: imageName,
@@ -70,13 +78,11 @@ def call(Map params = [:]) {
         pushRegistry: pushRegistry,
         pushRegistryCredentials: pushRegistryCredentials,
         pushRegistryNamespace: pushRegistryNamespace,
-        testCmd: testCmd,
-        testResultPattern: testResultPattern
     ]
     // add default image, if a name is defined
     if (imageName) {
         echo "adding default image config: ${defaultImageConfig}}"
-        dockerBuilds.add([name: imageName, config: defaultImageConfig, image: null])
+        dockerBuilds.put(imageName, [name: imageName, config: defaultImageConfig, image: null])
     }
     else {
         echo "no default image defined"
@@ -89,18 +95,19 @@ def call(Map params = [:]) {
        fullImageConfig.putAll(defaultImageConfig)
        fullImageConfig.putAll(imageConfig)
        echo "adding extra image config: ${fullImageConfig}"
-       dockerBuilds.add([name: fullImageConfig['imageName'], config: fullImageConfig, image: null])
+       dockerBuilds.put(fullImageConfig['imageName'], [name: fullImageConfig['imageName'], config: fullImageConfig, image: null])
     }
 
-    def forAllBuilds = { Closure body ->
-        for (build in dockerBuilds) {
-            def name = build.name
+    // iterator helper over all build configs / image builds
+    def forAllBuilds = { Closure bodyPerBuild ->
+        dockerBuilds.each { name, build ->
             def conf = build.config
             def image = build.image
 
-            body(name, conf, image, build)
+            bodyPerBuild(name, conf, image, build)
         }
     }
+
 
     pipeline {
 
@@ -140,7 +147,24 @@ def call(Map params = [:]) {
                             echo "building image ${name}"
                             docker.withRegistry("https://${conf.pullRegistry}", conf.pullRegistryCredentials) {
                                 def imgRepo = "${conf.pushRegistry}/${conf.pushRegistryNamespace}/${name}"
-                                def productImage = docker.build("${imgRepo}:${GIT_COMMIT}")
+                                def jenkinsLabels = "--label vbc.git.commit='${GIT_COMMIT}' \
+                                                     --label vbc.git.branch='${GIT_BRANCH}' \
+                                                     --label vbc.git.tag='${isTagBuild}' \
+                                                     --label vbc.git.url='${GIT_URL}' \
+                                                     --label vbc.jenkins.buildtag='${BUILD_TAG}' \
+                                                     --label vbc.jenkins.node='${NODE_NAME}' \
+                                                     --label vbc.jenkins.buildnumber='${BUILD_NUMBER}' \
+                                                     --label vbc.jenkins.buildurl='${BUILD_URL}'"
+                                def jenkinsArgs = "--build-arg GIT_COMMIT='${GIT_COMMIT}' \
+                                                  --build-arg GIT_BRANCH='${GIT_BRANCH}' \
+                                                  --build-arg GIT_TAG='${isTagBuild}' \
+                                                  --build-arg GIT_URL='${GIT_URL}' \
+                                                  --build-arg BUILD_TAG='${BUILD_TAG}' \
+                                                  --build-arg BUILD_URL='${BUILD_URL}' \
+                                                  --build-arg BUILD_NUMBER='${BUILD_NUMBER}' \
+                                                  --build-arg NODE_NAME='${NODE_NAME}'"
+
+                                def productImage = docker.build("${imgRepo}:${GIT_COMMIT}", "-f ${conf.dockerFile} ${jenkinsLabels} ${jenkinsArgs} ${conf.dockerContext}")
                                 build.putAll([image: productImage, repo: imgRepo])
                             }
                         })
@@ -150,30 +174,14 @@ def call(Map params = [:]) {
             stage('test') {
                 when {
                     // Only say hello if a "greeting" is requested
-                    expression { dockerBuilds.findAll { it.config.testCmd != null } != null }
+                    expression { testClos != null }
                 }
                 steps {
                     script {
-                        forAllBuilds({ name, conf, image ->
-                            echo "my config: ${conf}"
-                            echo "my testCmd: ${conf.testCmd}"
-                            if (conf.testCmd != null) {
-                                image.inside() {
-                                    echo "test environment in ${name}"
-                                    sh 'env'
-                                    sh 'pwd'
-                                    echo "running tests for image ${name} as ${conf.testCmd}"
-                                    // dont fail on error, we'll be UNSTABLE with failed tests
-                                    def test_status = sh returnStatus: true, script: conf.testCmd
-                                    // collect test results
-                                    // https://stackoverflow.com/questions/39920437/how-to-access-junit-test-counts-in-jenkins-pipeline-project
-                                    junit keepLongStdio: true, allowEmptyResults: true, testResults: conf.testResultPattern
-                                }
-                            }
-                            else {
-                                echo "no tests defined for ${name}"
-                            }
-                        })
+                        // test closure
+                        //    return { imageName, defaultImageName, allBuilds -> ... }
+                        //
+                        testClos(imageName, dockerBuilds)
                     }
                 }
             }
@@ -205,6 +213,9 @@ def call(Map params = [:]) {
                 }
             }
             stage('tower') {
+                // triggering tower can happen anywhere
+                agent any
+
                 // deploy when tagged and tower is configured
                 when {
                     anyOf {
@@ -216,7 +227,7 @@ def call(Map params = [:]) {
                         allOf {
                             buildingTag()
                             expression {
-                                return towerConfigs['tags']
+                                return towerConfigs['tags'] != null
                             }
                         }
                     }
