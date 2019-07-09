@@ -71,7 +71,14 @@ pipeline {
                           description: "CLIP related Ansible roles",
                           excludePattern: "",
                           includePattern: "role-*",
-                          buildTags: false ]
+                          buildTags: false ],
+                        [owner: "CLIP",
+                          folder: "CLIP-platinum",
+                          name:"Platinum",
+                          description: "CLIP Platinum accounting",
+                          excludePattern: "",
+                          includePattern: "platinum*",
+                          buildTags: true ]
                     ]
 
                     // molecule cookiecutter testing is extra

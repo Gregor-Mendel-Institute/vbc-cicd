@@ -8,7 +8,8 @@ def cicdLib = cicdLibConfig
 def orgJobs = []
 for (org in vbcBitbucketOrgs) {
     def buildTags = org.buildTags
-    def orgJob = organizationFolder("${org.owner}") {
+    def folder = org.get('folder', org.owner)
+    def orgJob = organizationFolder("${folder}") {
         displayName("${org.name}")
         description("${org.description}")
         triggers {
