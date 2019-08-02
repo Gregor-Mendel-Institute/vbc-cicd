@@ -1,0 +1,82 @@
+---
+# use yaml anchor, reference, extend for applying defaults
+jenkins_permissions:
+  default_view_build_perms: &default_perms
+    - "hudson.model.Item.Read"
+    - "hudson.model.Item.Build"
+    - "hudson.model.Item.Cancel"
+#
+repo_providers:
+  github: &github
+    type: github
+    credentials: 'other-creds-ref-id'
+  bitbucket: &bitbucket
+    type: bitbucket
+    url: https://bitbucket.imp.ac.at
+    credentials: 'svc-bitbucket-access-user-passwd'
+    checkoutCredentials: dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3
+#
+cicd_lib:
+  name: 'vbc-cicd'
+  # FIXME the GIT_BRANCH is referencing the Seedjob config,
+  # maybe leave empty to use seed job
+  # version: scmVars.GIT_BRANCH
+  gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git"
+  gitCredentialsId: dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3
+#
+# these are the project config references
+repo_orgs:
+  - owner: "IAB"
+    name: "IT Ansible Baseline"
+    description: "Baseline components for System Deployment"
+    excludePattern: "vbc-cicd"
+    includePattern: "*"
+    buildTags: false
+    provider: *bitbucket
+    #
+  # IT Ansible Operations
+  - owner: "IAO"
+    name: "IT Ansible Ops"
+    description: "Operations Tasks and Tooling"
+    excludePattern: ""
+    includePattern: "*"
+    buildTags: false
+    provider: *bitbucket
+  #
+  - owner: "VBC"
+    name: "VBC repos"
+    description: "mostly for building docker images"
+    excludePattern: ""
+    includePattern: "*"
+    buildTags: true
+    permissions:
+      - subject: "some_user"
+        privileges: *default_perms
+    provider: *bitbucket
+  #
+  - owner: "CLIP"
+    name: "CLIP Ansible Roles"
+    description: "CLIP related Ansible roles"
+    excludePattern: ""
+    includePattern: "role-*"
+    buildTags: false
+    provider: *bitbucket
+  #
+  - owner: "CLIP"
+    folder: "CLIP-platinum"
+    name: "Platinum"
+    description: "CLIP Platinum accounting"
+    excludePattern: ""
+    includePattern: "platinum*"
+    buildTags: true
+    permissions:
+      - subject: "some_user"
+        privileges: *default_perms
+    provider: *bitbucket
+  - owner: "IAB"
+    name: Molecule Cookiecutter
+    includePattern: "cookiecutter-molecule"
+    buildTags: true
+    provider: *bitbucket
+# add ARAGWAS project
+...

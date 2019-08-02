@@ -14,6 +14,9 @@ pipeline {
         // execute once an hour, on a minute calculated from the project name
         cron('H * * * *')
     }
+    parameters {
+        //fileParam("pipelines.yml", "Pipeline definition fila (yaml)")
+    }
 
     stages {
         // for display purposes
@@ -31,85 +34,16 @@ pipeline {
         stage('generate') {
             steps {
                 script {
-                    def bitbucketUrl = 'https://bitbucket.imp.ac.at'
-                    def bitbucketCredentials = 'svc-bitbucket-access-user-passwd'
-                    def bitbucketSshCredentials = 'dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3'
-
-                    // shared CICD library config, could also do version: scmVars.GIT_COMMIT
-                    def cicdLibSettings = [
-                            name: 'vbc-cicd',
-                            version: scmVars.GIT_BRANCH,
-                            gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git",
-                            gitCredentialsId: bitbucketSshCredentials
-                    ]
-
                     echo "my git setup: ${scmVars}"
                     echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
-                    def default_view_build_perms = [
-                      'hudson.model.Item.Read',
-                      'hudson.model.Item.Build',
-                      'hudson.model.Item.Cancel'
-                    ]
                     // Bitbucket organizations to scan for roles
-                    def vbcBitbucketOrgs = [
-                        [owner: "IAB",
-                          name:"IT Ansible Baseline",
-                          description: "Baseline components for System Deployment",
-                          excludePattern: "vbc-cicd",
-                          includePattern: "*",
-                          buildTags: false
-                        ],
-                        [owner: "IAO",
-                          name:"IT Ansible Ops",
-                          description: "Operations Tasks and Tooling",
-                          excludePattern: "",
-                          includePattern: "*",
-                          buildTags: false
-                        ],
-                        [owner: "VBC",
-                          name:"VBC repos",
-                          description: "mostly for building docker images",
-                          excludePattern: "",
-                          includePattern: "*",
-                          buildTags: true,
-                          permissions: [
-                            [ subject: "some_user",
-                              privileges: default_view_build_perms
-                            ]
-                          ]
-                        ],
-                        [owner: "CLIP",
-                          name:"CLIP Ansible Roles",
-                          description: "CLIP related Ansible roles",
-                          excludePattern: "",
-                          includePattern: "role-*",
-                          buildTags: false
-                        ],
-                        [owner: "CLIP",
-                          folder: "CLIP-platinum",
-                          name:"Platinum",
-                          description: "CLIP Platinum accounting",
-                          excludePattern: "",
-                          includePattern: "platinum*",
-                          buildTags: true,
-                          permissions: [
-                            [subject: "some_user",
-                             privileges: default_view_build_perms
-                            ]
-                        ]
-                    ]
+                    def discovery_data = readYaml file: "default_discovery.yml"
 
-                    // molecule cookiecutter testing is extra
-                    def cookiecutterRepoConfig = [
-                        url: bitbucketUrl,
-                        credentials: bitbucketCredentials,
-                        repoOwner: "IAB",
-                        repoName: "cookiecutter-molecule",
-                        sshCredentials: bitbucketSshCredentials
-                    ]
-
-
+                    // shared CICD library config, could also do version: scmVars.GIT_COMMIT
+                    if not cicdLibSettings.version {
+                        cicdLibSettings.version = scmVars.GIT_BRANCH
+                    }
 
                     // call the jobdsl script for the roles
                     jobDsl removedConfigFilesAction: 'DELETE',
@@ -119,12 +53,8 @@ pipeline {
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
-                               bitbucketUrl: bitbucketUrl,
-                               bitbucketCredentials: bitbucketCredentials,
-                               bitbucketSshCredentials: bitbucketSshCredentials,
                                cicdLibConfig: cicdLibSettings,
-                               vbcBitbucketOrgs: vbcBitbucketOrgs,
-                               cookiecutterRepoConfig: cookiecutterRepoConfig
+                               discoverOrgs: discovery_data.repo_orgs
                            ]
                  }
             }

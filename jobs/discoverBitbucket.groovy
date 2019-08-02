@@ -1,12 +1,9 @@
 
 
-def repoUrl = bitbucketUrl
-def repoCredentials = bitbucketCredentials
-def repoCheckoutCredentials = bitbucketSshCredentials
 def cicdLib = cicdLibConfig
 
 def orgJobs = []
-for (org in vbcBitbucketOrgs) {
+for (org in discoverOrgs) {
     def buildTags = org.buildTags
     def folder = org.get('folder', org.owner)
     def orgJob = organizationFolder("${folder}") {
@@ -33,10 +30,10 @@ for (org in vbcBitbucketOrgs) {
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
-                serverUrl("${repoUrl}")
+                serverUrl("${org.provider.url}")
 
                 // credentials for API access and checkouts
-                credentialsId("${repoCredentials}")
+                credentialsId("${org.provider.credentials}")
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
@@ -53,6 +50,7 @@ for (org in vbcBitbucketOrgs) {
         projectFactories {
             workflowMultiBranchProjectFactory {
                 // Relative location within the checkout of your Pipeline script.
+                scriptPath("Jenkinsfile.vbc")
                 scriptPath("Jenkinsfile")
             }
         }
@@ -128,7 +126,7 @@ for (org in vbcBitbucketOrgs) {
 
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                 // use ssh with these credentials for the actual checkout
-                credentialsId(repoCheckoutCredentials)
+                credentialsId(org.provider.checkoutCredentials)
             }
 
            if (buildTags) {
