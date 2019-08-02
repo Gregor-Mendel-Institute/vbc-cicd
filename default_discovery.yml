@@ -91,6 +91,8 @@ repo_orgs:
     name: Molecule Cookiecutter
     includePattern: "cookiecutter-molecule"
     buildTags: true
-    provider: *bitbucket
+    provider:
+      <<: *bitbucket
+      type: xxx-single
 # add ARAGWAS project
 ...

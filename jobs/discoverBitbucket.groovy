@@ -1,11 +1,13 @@
 
 def orgJobs = []
+def cicdLib = cicdLibConfig
 // groovy 2.4
 // for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
 for (org in discoverOrgs) {
     if (org.provider.type != 'bitbucket')
         continue
 
+    echo "processing Bitbucket org ${org.name}"
     def buildTags = org.buildTags
     def provider = org.provider
     def folder = org.get('folder', org.owner)
@@ -81,8 +83,8 @@ for (org in discoverOrgs) {
                             modernSCM {
                                 scm {
                                     git {
-                                        remote(cicdLib.gitRepo)
-                                        credentialsId(cicdLib.gitCredentialsId)
+                                        remote(cicdLib.provider.url)
+                                        credentialsId(cicdLib.provider.checkoutCredentials)
 
                                         traits {
                                             gitBranchDiscovery()

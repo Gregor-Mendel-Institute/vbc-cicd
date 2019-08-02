@@ -1,4 +1,5 @@
 
+def cicdLib = cicdLibConfig
 
 for (singleRepo in discoverOrgs) {
 if (singleRepo.provider.type != 'single')
@@ -27,7 +28,7 @@ multibranchPipelineJob("CookiecutterMolecule") {
             source {
 // Discovers branches and/or pull requests from a specific repository in either Bitbucket Cloud or a Bitbucket Server instance.
                 bitbucket {
-                    serverUrl(singleRepo.url)
+                    serverUrl(singleRepo.provider.url)
                     // Specify the name of the Bitbucket Team or Bitbucket User Account.
                     repoOwner(singleRepo.repoOwner)
                     // The repository to scan.

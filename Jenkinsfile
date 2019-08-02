@@ -56,7 +56,7 @@ pipeline {
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
-                               cicdLib: cicdLibSettings,
+                               cicdLibConfig: cicdLibSettings,
                                discoverOrgs: discovery_data.repo_orgs
                            ]
                  }
