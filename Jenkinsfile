@@ -1,4 +1,4 @@
-
+#!/usr/bin/env groovy
 
 // transport scmVars through all stages, i.e. global
 def scmVars
@@ -53,32 +53,53 @@ pipeline {
                           description: "Baseline components for System Deployment",
                           excludePattern: "vbc-cicd",
                           includePattern: "*",
-                          buildTags: false ],
+                          buildTags: false
+                        ],
                         [owner: "IAO",
                           name:"IT Ansible Ops",
                           description: "Operations Tasks and Tooling",
                           excludePattern: "",
                           includePattern: "*",
-                          buildTags: false ],
+                          buildTags: false
+                        ],
                         [owner: "VBC",
                           name:"VBC repos",
                           description: "mostly for building docker images",
                           excludePattern: "",
                           includePattern: "*",
-                          buildTags: true ],
+                          buildTags: true,
+                          permissions: [
+                            [subject: "some_user",
+                            privileges: [
+                              'hudson.model.Item.Read',
+                              'hudson.model.Item.Build',
+                              'hudson.model.Item.Cancel'
+                            ]]
+                          ]
+                        ],
                         [owner: "CLIP",
                           name:"CLIP Ansible Roles",
                           description: "CLIP related Ansible roles",
                           excludePattern: "",
                           includePattern: "role-*",
-                          buildTags: false ],
+                          buildTags: false
+                        ],
                         [owner: "CLIP",
                           folder: "CLIP-platinum",
                           name:"Platinum",
                           description: "CLIP Platinum accounting",
                           excludePattern: "",
                           includePattern: "platinum*",
-                          buildTags: true ]
+                          buildTags: true,
+                          permissions: [
+                            [subject: "some_user",
+                            privileges: [
+                              'hudson.model.Item.Read',
+                              'hudson.model.Item.Build',
+                              'hudson.model.Item.Cancel'
+                            ]]
+                          ]
+                        ]
                     ]
 
                     // molecule cookiecutter testing is extra
