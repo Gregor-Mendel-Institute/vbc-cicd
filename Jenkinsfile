@@ -46,6 +46,11 @@ pipeline {
                     echo "my git setup: ${scmVars}"
                     echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
+                    def default_view_build_perms = [
+                      'hudson.model.Item.Read',
+                      'hudson.model.Item.Build',
+                      'hudson.model.Item.Cancel'
+                    ]
                     // Bitbucket organizations to scan for roles
                     def vbcBitbucketOrgs = [
                         [owner: "IAB",
@@ -69,12 +74,9 @@ pipeline {
                           includePattern: "*",
                           buildTags: true,
                           permissions: [
-                            [subject: "some_user",
-                            privileges: [
-                              'hudson.model.Item.Read',
-                              'hudson.model.Item.Build',
-                              'hudson.model.Item.Cancel'
-                            ]]
+                            [ subject: "some_user",
+                              privileges: default_view_build_perms
+                            ]
                           ]
                         ],
                         [owner: "CLIP",
@@ -93,12 +95,8 @@ pipeline {
                           buildTags: true,
                           permissions: [
                             [subject: "some_user",
-                            privileges: [
-                              'hudson.model.Item.Read',
-                              'hudson.model.Item.Build',
-                              'hudson.model.Item.Cancel'
-                            ]]
-                          ]
+                             privileges: default_view_build_perms
+                            ]
                         ]
                     ]
 
