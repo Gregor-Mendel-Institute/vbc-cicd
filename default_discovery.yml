@@ -6,7 +6,7 @@ jenkins_permissions:
     - "hudson.model.Item.Build"
     - "hudson.model.Item.Cancel"
 #
-repo_providers:
+jenkins_repo_providers:
   github: &github
     type: github
     credentials: 'other-creds-ref-id'
@@ -16,7 +16,7 @@ repo_providers:
     credentials: 'svc-bitbucket-access-user-passwd'
     checkoutCredentials: 'dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3'
 #
-cicd_lib:
+jenkins_cicd_lib:
   name: 'vbc-cicd'
   # FIXME the GIT_BRANCH is referencing the Seedjob config,
   # maybe leave empty to use seed job
@@ -24,7 +24,7 @@ cicd_lib:
   provider: *bitbucket
 #
 # these are the project config references
-repo_orgs:
+jenkins_repo_orgs:
   - owner: "IAB"
     name: "IT Ansible Baseline"
     description: "Baseline components for System Deployment"
