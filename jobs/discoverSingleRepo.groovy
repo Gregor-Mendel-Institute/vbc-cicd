@@ -118,43 +118,8 @@ multibranchPipelineJob("CookiecutterMolecule") {
         }
     }
 
-    properties {
-        folderLibraries {
-            libraries {
-                libraryConfiguration {
-                    // An identifier you pick for this library, to be used in the @Library annotation.
-                    name(cicdLib.name)
-
-                    // A default version of the library to load if a script does not select another.
-                    defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
-
-                    // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
-                    //allowVersionOverride(boolean value)
-                    // If checked, scripts will automatically have access to this library without needing to request it via @Library.
-                    implicit(true)
-
-                    // If checked, any changes in the library will be included in the changesets of a build.
-                    includeInChangesets(true)
-
-                    retriever {
-                        modernSCM {
-                            scm {
-                                git {
-                                    remote(cicdLib.gitRepo)
-                                    credentialsId(cicdLib.gitCredentialsId)
-
-                                    traits {
-                                        gitBranchDiscovery()
-                                        gitTagDiscovery()
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-    }
+    // used to import library here
+    // properties {
+    // }
 }
 }

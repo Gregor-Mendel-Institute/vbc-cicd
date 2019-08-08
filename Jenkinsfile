@@ -52,22 +52,6 @@ pipeline {
                     // Bitbucket organizations to scan for roles
                     //def discovery_data = readYaml file: "default_discovery.yml"
                     def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
-                    def cicdLibSettings = discovery_data.jenkins_cicd_lib
-                    // shared CICD library config, could also do version: scmVars.GIT_COMMIT
-                    if (! cicdLibSettings.version) {
-                        cicdLibSettings.version = scmVars.GIT_BRANCH
-                    }
-                    echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
-
-                    // load myself as library for the discovery scripts, same repo ref as the seed job itself
-                    //library identifier: cicdLibSettings.name, retriever: modernSCM(scm)
-                    def libVersion = "${cicdLibSettings.name}@${cicdLibSettings.version}"
-                    def theLib = library identifier: libVersion, retriever: modernSCM([$class: 'GitSCMSource',
-                        remote: "${cicdLibSettings.provider.url}",
-                        credentialsId: "${cicdLibSettings.provider.checkoutCredentials}"])
-                    //def ppp = theLib.jobUtils.buildPermissions([1,2,3])
-                    echo "the lib is: ${theLib}"
-
                     // call the jobdsl script for the roles
                     jobDsl removedConfigFilesAction: 'DELETE',
                            removedJobAction: 'DELETE',
@@ -77,7 +61,6 @@ pipeline {
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
                                jobUtils: theLib.jobUtils,
-                               cicdLibConfig: cicdLibSettings,
                                discoverOrgs: discovery_data.jenkins_repo_orgs
                            ]
                  }
