@@ -60,7 +60,6 @@ pipeline {
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
-                               jobUtils: theLib.jobUtils,
                                discoverOrgs: discovery_data.jenkins_repo_orgs
                            ]
                  }
