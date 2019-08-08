@@ -60,7 +60,7 @@ pipeline {
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
-                               discoverOrgs: discovery_data.jenkins_repo_orgs
+                               discoverOrgs: discovery_data.jenkins_seed_orgs
                            ]
                  }
             }

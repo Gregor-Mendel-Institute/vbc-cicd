@@ -1,5 +1,4 @@
 
-def cicdLib = cicdLibConfig
 
 for (singleRepo in discoverOrgs) {
 if (singleRepo.provider.type != 'single')

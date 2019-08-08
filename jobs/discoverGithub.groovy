@@ -1,6 +1,5 @@
 
 def orgJobs = []
-def cicdLib = cicdLibConfig
 // groovy 2.4
 // for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
 for (org in discoverOrgs) {
