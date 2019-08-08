@@ -56,7 +56,8 @@ pipeline {
                     jobDsl removedConfigFilesAction: 'DELETE',
                            removedJobAction: 'DELETE',
                            removedViewAction: 'DELETE',
-                           lookupStrategy: 'SEED_JOB',
+                           //lookupStrategy: 'SEED_JOB',
+                           lookupStrategy: 'JENKINS_ROOT',
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
