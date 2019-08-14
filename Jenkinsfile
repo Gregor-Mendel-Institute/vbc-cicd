@@ -33,6 +33,8 @@ pipeline {
                     scmVars = checkout scm
                     // checkout baseline for seed org info
                     // FIXME ref should be configurable, i.e. branch or tag
+                    // TODO investigate resolveScm(source: git('https://example.com/example.git'), targets: [BRANCH_NAME,'master']
+                    // tries to find the same ref as main scm, then falls back to master
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: 'refs/heads/jenkins_server']],
