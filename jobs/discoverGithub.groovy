@@ -3,12 +3,12 @@ def orgJobs = []
 // groovy 2.4
 // for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
 for (org in discoverOrgs) {
-    if (org.provider.type != 'github')
+    if (org.jenkins.provider.type != 'github')
         continue
 
-    def buildTags = org.buildTags
-    def provider = org.provider
-    def folder = org.get('folder', org.owner)
+    def buildTags = org.jenkins.buildTags
+    def provider = org.jenkins.provider
+    def folder = org.jenkins.get('folder', org.owner)
     def orgJob = organizationFolder("${folder}") {
         displayName("${org.name}")
         description("${org.description}")
@@ -32,10 +32,10 @@ for (org in discoverOrgs) {
         organizations {
             github {
                 repoOwner("${org.owner}")
-                apiUri("${org.provider.url}")
+                apiUri("${org.jenkins.provider.url}")
 
                 // credentials for API access and checkouts
-                credentialsId("${org.provider.credentials}")
+                credentialsId("${org.jenkins.provider.credentials}")
                 // not part of github?
                 // checkoutCredentialsId("${org.provider.checkoutCredentials}")
 
@@ -44,8 +44,8 @@ for (org in discoverOrgs) {
                 traits {
                     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
-                        includes("${org.includePattern}")
-                        excludes("${org.excludePattern}")
+                        includes("${org.jenkins.includePattern}")
+                        excludes("${org.jenkins.excludePattern}")
                     }
                 }
             }

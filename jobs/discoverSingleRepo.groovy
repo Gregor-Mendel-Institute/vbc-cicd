@@ -1,7 +1,10 @@
 
 
 for (singleRepo in discoverOrgs) {
-if (singleRepo.provider.type != 'single')
+
+def provider = singleRepo.jenkins.provider
+
+if (provider.type != 'single')
     continue
 
 def hello = new vbc.ansible.cicd.Hello()
