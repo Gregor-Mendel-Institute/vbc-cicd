@@ -20,9 +20,9 @@ sourceSets {
         }
     }
 
-    src {
+    lib {
         groovy {
-            srcDirs 'src'
+            srcDirs 'lib'
             compileClasspath += main.compileClasspath
         }
     }
@@ -50,8 +50,11 @@ repositories {
 dependencies {
 
     // this is for jenkins integration
-    compile 'org.jenkins-ci.plugins:job-dsl-core:1.72'
+    compile 'org.jenkins-ci.plugins:job-dsl-core:1.74'
     compile 'org.jenkins-ci.plugins:workflow-multibranch-plugin:3.25'
+    compile 'org.jenkins-ci.plugins:bitbucket:1.1.10'
+    compile 'org.jenkins-ci.plugins:github:1.29.4'
+    compile 'org.jenkins-ci.plugins:folder-properties:1.0'
 
     // Use the latest Groovy version for building this library
     implementation 'org.codehaus.groovy:groovy-all:2.5.4'

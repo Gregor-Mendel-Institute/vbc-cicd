@@ -1,4 +1,4 @@
-package vbc.ansible.cicd
+package vbc.cicd
 
 class MoleculeDocker {
 

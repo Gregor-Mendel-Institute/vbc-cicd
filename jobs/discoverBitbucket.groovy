@@ -1,4 +1,4 @@
-//@Library('vbc-cicd') _
+
 
 def orgJobs = []
 // groovy 2.4
@@ -21,9 +21,13 @@ for (org in discoverOrgs) {
                 interval("60")
             }
         }
-        //authorization {
-        jobUtils.setupOrgPermissions(org)
-        //}
+        authorization {
+            // jobUtils.buildPermissions(org.permissions)
+            for (group in org.groups) {
+              permissions(group.name, group.jenkins_perms)
+            }
+        }
+
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
@@ -35,6 +39,7 @@ for (org in discoverOrgs) {
                 // this one is deprecated
                 //autoRegisterHooks(true)
                 traits {
+
                     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
                         includes("${org.jenkins.includePattern}")

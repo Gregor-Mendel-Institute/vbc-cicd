@@ -3,7 +3,7 @@
 // transport scmVars through all stages, i.e. global
 def scmVars
 
-@Library('vbc-cicd') _
+// reusable DSL https://blog.thesparktree.com/you-dont-know-jenkins-part-2
 
 pipeline {
 
