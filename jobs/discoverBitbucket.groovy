@@ -1,3 +1,4 @@
+//@Library('vbc-cicd') _
 
 def orgJobs = []
 // groovy 2.4
@@ -20,12 +21,9 @@ for (org in discoverOrgs) {
                 interval("60")
             }
         }
-        authorization {
-            // jobUtils.buildPermissions(org.permissions)
-            for (group in org.groups) {
-              permissions(group.name, group.jenkins_perms)
-            }
-        }
+        //authorization {
+        jobUtils.setupOrgPermissions(org)
+        //}
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")

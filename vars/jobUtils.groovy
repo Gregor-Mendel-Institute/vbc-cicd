@@ -13,4 +13,12 @@ def buildPermissions(permissions) {
   return permissions
 }
 
-
+// handin org.groups
+def setupOrgPermissions(org) {
+    return authorization {
+        def groups = org.get('groups', [])
+        for (group in groups) {
+            permissions(group.name, group.jenkins_perms)
+        }
+    }
+}

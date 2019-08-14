@@ -3,6 +3,8 @@
 // transport scmVars through all stages, i.e. global
 def scmVars
 
+@Library('vbc-cicd') _
+
 pipeline {
 
 // this is the seed job jenkinsfile
