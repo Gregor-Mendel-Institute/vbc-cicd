@@ -3,13 +3,13 @@ def orgJobs = []
 // groovy 2.4
 // for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
 for (org in discoverOrgs) {
-    if (org.provider.type != 'bitbucket')
+    if (org.jenkins.provider.type != 'bitbucket')
         continue
 
-    def buildTags = org.buildTags
-    def provider = org.provider
-    def folder = org.get('folder', org.owner)
-    def orgJob = organizationFolder("${folder}") {
+    def buildTags = org.jenkins.buildTags
+    def provider = org.jenkins.provider
+    def folder = org.jenkins.get('folder', org.owner)
+    def orgJob = organizationFolder(folder) {
         displayName("${org.name}")
         description("${org.description}")
         triggers {
@@ -20,24 +20,27 @@ for (org in discoverOrgs) {
                 interval("60")
             }
         }
-        // authorization {
-        //    // jobUtils.buildPermissions(org.permissions)
-        // }
+        authorization {
+            // jobUtils.buildPermissions(org.permissions)
+            for (group in org.groups) {
+              permissions(group.name, group.jenkins_perms)
+            }
+        }
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
-                serverUrl("${org.provider.url}")
+                serverUrl("${org.jenkins.provider.url}")
 
                 // credentials for API access
-                credentialsId("${org.provider.credentials}")
+                credentialsId("${org.jenkins.provider.credentials}")
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
                 traits {
                     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
-                        includes("${org.includePattern}")
-                        excludes("${org.excludePattern}")
+                        includes("${org.jenkins.includePattern}")
+                        excludes("${org.jenkins.excludePattern}")
                     }
                 }
             }
