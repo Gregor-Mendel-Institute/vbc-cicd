@@ -20,9 +20,9 @@ sourceSets {
         }
     }
 
-    lib {
+    src {
         groovy {
-            srcDirs 'lib'
+            srcDirs 'src'
             compileClasspath += main.compileClasspath
         }
     }
