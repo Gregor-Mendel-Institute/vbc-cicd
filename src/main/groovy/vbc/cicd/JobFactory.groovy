@@ -117,17 +117,6 @@ class JobFactory {
         }
     }
 
-    // triggers that come from the factory
-    Closure triggers(ctx) {
-        return {
-            periodicFolderTrigger {
-                // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
-                // rescan every 15 mins
-                interval("60")
-            }
-            // append triggers coming from repo providers
-        }//.with(repoProvider.triggers(ctx))
-    }
 
     Closure makeMultibranchJob() {
         return _dslFactory.multibranchPipelineJob(this.folder) {
@@ -140,17 +129,14 @@ class JobFactory {
     public OrganizationFolderJob makeOrganizationFolder() {
 
         def repoProvider = this.getRepoProvider()
-        def repoOrg = repoProvider.getOrganization()
 
         def orgFolder = _dslFactory.organizationFolder(this.folder) {
             displayName(this.name)
             description(this.description)
 
-            //triggers this.triggers()
-
 
             // dynamically setup the right organization
-            organizations repoProvider.getOrganization()
+            //organizations repoProvider.getOrganization()
 
             authorization {
                 // jobUtils.buildPermissions(org.permissions)
@@ -159,6 +145,7 @@ class JobFactory {
                 }
             }
 
+            /*
             // this is how we detect that there is something to do for us
             projectFactories {
                 workflowMultiBranchProjectFactory {
@@ -166,9 +153,16 @@ class JobFactory {
                     scriptPath("Jenkinsfile")
                 }
             }
+            */
         }
 
+
+        orgFolder.with(repoProvider.repoTriggers())
+        orgFolder.with(repoProvider.getOrganizations())
+
+        // return complete configured job
         return orgFolder
+
 
 
     }

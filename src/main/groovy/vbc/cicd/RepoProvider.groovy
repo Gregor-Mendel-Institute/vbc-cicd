@@ -24,12 +24,14 @@ abstract class RepoProvider {
     }
 
     public abstract Closure getScmDefinition()
-    public Closure triggers(ctx) {
-        return { }
-    }
+    public abstract Closure repoTriggers()
 
-    public Closure getOrganization() {
-        return null
+    public Closure getOrganizations() {
+        return { organizations ->
+            organizations {
+
+            }
+        }
     }
     // factory method to create instance
     public static RepoProvider newRepoProvider(Map org) {
@@ -64,23 +66,25 @@ class BitbucketRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure getOrganization() {
-        return {
-            bitbucket {
-                repoOwner(this.owner)
-                serverUrl(this.url)
+    Closure getOrganizations() {
+        return super.getOrganizations().with { organisations ->
+            organisations {
+                bitbucket {
+                    repoOwner(this.owner)
+                    serverUrl(this.url)
 
-                // credentials for API access
-                credentialsId(this.credentialsId)
+                    // credentials for API access
+                    credentialsId(this.credentialsId)
 
-                // this one is deprecated
-                //autoRegisterHooks(true)
-                traits {
+                    // this one is deprecated
+                    //autoRegisterHooks(true)
+                    traits {
 
-                    sourceWildcardFilter {
-                        // Space-separated list of project name patterns to consider.
-                        includes(this.includes)
-                        excludes(this.excludes)
+                        sourceWildcardFilter {
+                            // Space-separated list of project name patterns to consider.
+                            includes(this.includes)
+                            excludes(this.excludes)
+                        }
                     }
                 }
             }
@@ -88,9 +92,18 @@ class BitbucketRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure triggers(ctx) {
-        return super.triggers(ctx).with {
-            bitbucketPush()
+    Closure repoTriggers() {
+        return { job ->
+            job.triggers {
+                /*
+                periodicFolderTrigger {
+                    // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
+                    // rescan every 15 mins
+                    interval("60")
+                }*/
+                periodic(60)
+                // bitbucketPush()
+            }
         }
     }
 }
@@ -110,9 +123,16 @@ class GithubRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure triggers(ctx) {
-        return super.triggers(ctx).with {
-            ctx.githubPush()
+    Closure repoTriggers() {
+        return  {
+            triggers {
+                periodicFolderTrigger {
+                    // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
+                    // rescan every 15 mins
+                    interval("60")
+                }
+                githubPush()
+            }
         }
     }
 }
@@ -126,7 +146,7 @@ class SingleRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure triggers(ctx) {
+    Closure repoTriggers() {
         return
     }
 }
