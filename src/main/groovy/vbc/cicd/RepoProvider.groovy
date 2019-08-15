@@ -95,14 +95,13 @@ class BitbucketRepoProvider extends RepoProvider {
     Closure repoTriggers() {
         return { job ->
             job.triggers {
-                /*
                 periodicFolderTrigger {
                     // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
                     // rescan every 15 mins
                     interval("60")
-                }*/
-                periodic(60)
-                // bitbucketPush()
+                }
+                //periodic(60) // DEPRECATED
+                bitbucketPush()
             }
         }
     }
