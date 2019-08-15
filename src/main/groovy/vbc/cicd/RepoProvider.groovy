@@ -1,7 +1,3 @@
-
-
-
-
 package vbc.cicd
 
 import groovy.transform.InheritConstructors
@@ -28,9 +24,11 @@ abstract class RepoProvider {
     }
 
     public abstract Closure getScmDefinition()
-    public abstract Closure addTriggers()
+    public Closure triggers(ctx) {
+        return { }
+    }
 
-    public Closure getOrganization(ctxOrg) {
+    public Closure getOrganization() {
         return null
     }
     // factory method to create instance
@@ -66,30 +64,34 @@ class BitbucketRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure getOrganization(ctxOrg) {
-        return ctxOrg.bitbucket {
-            repoOwner(this.owner)
-            serverUrl(this.url)
+    Closure getOrganization() {
+        return {
+            bitbucket {
+                repoOwner(this.owner)
+                serverUrl(this.url)
 
-            // credentials for API access
-            credentialsId(this.credentialsId)
+                // credentials for API access
+                credentialsId(this.credentialsId)
 
-            // this one is deprecated
-            //autoRegisterHooks(true)
-            traits {
+                // this one is deprecated
+                //autoRegisterHooks(true)
+                traits {
 
-                sourceWildcardFilter {
-                    // Space-separated list of project name patterns to consider.
-                    includes(this.includes)
-                    excludes(this.excludes)
+                    sourceWildcardFilter {
+                        // Space-separated list of project name patterns to consider.
+                        includes(this.includes)
+                        excludes(this.excludes)
+                    }
                 }
             }
         }
     }
 
     @Override
-    Closure addTriggers() {
-        return bitbucketPush()
+    Closure triggers(ctx) {
+        return super.triggers(ctx).with {
+            bitbucketPush()
+        }
     }
 }
 
@@ -108,8 +110,10 @@ class GithubRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure addTriggers() {
-        return githubPush()
+    Closure triggers(ctx) {
+        return super.triggers(ctx).with {
+            ctx.githubPush()
+        }
     }
 }
 
@@ -122,7 +126,7 @@ class SingleRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure addTriggers() {
+    Closure triggers(ctx) {
         return
     }
 }

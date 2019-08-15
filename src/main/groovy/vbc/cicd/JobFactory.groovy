@@ -1,5 +1,8 @@
 package vbc.cicd
 
+import javaposse.jobdsl.dsl.Folder
+import javaposse.jobdsl.dsl.jobs.OrganizationFolderJob
+
 
 class JobFactory {
 
@@ -64,7 +67,7 @@ class JobFactory {
     private Boolean buildTags = Boolean.FALSE
     private String folder = null
 
-    private Map<String,List<String>> permissionSets = new ArrayList<>()
+    private Map<String,List<String>> permissionSets = new HashMap<>()
     private RepoProvider repoProvider = null
 
     private Map raw = null
@@ -100,21 +103,33 @@ class JobFactory {
         }
     }
 
-    public boolean isBuildTags() {
+    boolean isBuildTags() {
         return buildTags
     }
 
-    public RepoProvider getRepoProvider() {
+    RepoProvider getRepoProvider() {
         return this.repoProvider
     }
 
-    public makeFolder() {
+    Folder makeFolder() {
         return _dslFactory.folder(this.folder) {
 
         }
     }
 
-    public Closure makeMultibranchJob() {
+    // triggers that come from the factory
+    Closure triggers(ctx) {
+        return {
+            periodicFolderTrigger {
+                // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
+                // rescan every 15 mins
+                interval("60")
+            }
+            // append triggers coming from repo providers
+        }//.with(repoProvider.triggers(ctx))
+    }
+
+    Closure makeMultibranchJob() {
         return _dslFactory.multibranchPipelineJob(this.folder) {
             displayName("Molecule Cookiecutter")
             description("test the cookiecutter template for creating new ansible roles")
@@ -122,7 +137,7 @@ class JobFactory {
         }
     }
 
-    public makeOrganizationFolder() {
+    public OrganizationFolderJob makeOrganizationFolder() {
 
         def repoProvider = this.getRepoProvider()
         def repoOrg = repoProvider.getOrganization()
@@ -130,22 +145,12 @@ class JobFactory {
         def orgFolder = _dslFactory.organizationFolder(this.folder) {
             displayName(this.name)
             description(this.description)
-            triggers {
-                this.repoProvider.addTriggers()
 
-                periodicFolderTrigger {
-                    // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
-                    // rescan every 15 mins
-                    interval("60")
-                }
-            }
+            //triggers this.triggers()
 
-            if (repoOrg) {
-                organization {
-                    // TODO should this be a nested closure with repoOrg() ?
-                    repoProvider.getOrganization(this)
-                }
-            }
+
+            // dynamically setup the right organization
+            organizations repoProvider.getOrganization()
 
             authorization {
                 // jobUtils.buildPermissions(org.permissions)
@@ -164,6 +169,7 @@ class JobFactory {
         }
 
         return orgFolder
+
 
     }
 }

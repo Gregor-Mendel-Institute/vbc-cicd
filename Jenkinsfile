@@ -48,6 +48,15 @@ pipeline {
                 }
             }
         }
+/*
+        stage('build') {
+            steps {
+                script {
+                    sh "./gradlew build --no-daemon"
+                }
+            }
+        }
+*/
         stage('generate') {
             steps {
                 script {
@@ -64,6 +73,7 @@ pipeline {
                            lookupStrategy: 'JENKINS_ROOT',
                            sandbox: true,
                            targets: 'jobs/*.groovy',
+                           additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
                                discoverOrgs: discovery_data.jenkins_seed_orgs
                            ]
