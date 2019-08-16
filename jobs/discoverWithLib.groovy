@@ -40,9 +40,6 @@ org.groups = [
 ]
 
 
-org.groups = []
-
-
 JobFactory factory = new JobFactory(this, org)
 // out.println "creating organization folder for: ${factory.owner}"
 def orgFolder = factory.makeOrganizationFolder()
