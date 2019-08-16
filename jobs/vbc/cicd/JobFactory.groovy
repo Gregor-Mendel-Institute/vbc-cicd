@@ -174,7 +174,7 @@ class JobFactory {
         return {
             folderCredentialsProperty {
                 for (org_creds in item_credentials) {
-                    domainCredentials { this.generateDomainCredentials(org_creds) }
+                    domainCredentials this.generateDomainCredentials(org_creds)
                 }
             }
         }

@@ -39,7 +39,7 @@ org.groups = [
     ],
     [
         name: "group_without_Access",
-        jenkins_perms: []
+        jenkins_perms: [] // jenkins will not list empty groups, deal with id :/
     ]
 ]
 
