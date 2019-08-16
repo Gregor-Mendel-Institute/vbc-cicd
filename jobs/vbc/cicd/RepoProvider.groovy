@@ -26,11 +26,9 @@ abstract class RepoProvider {
     abstract Closure getScmDefinition()
     abstract Closure repoTriggers()
 
+    // by default do nothing, i.e. empty closure
     Closure asOrganizations() {
-        return { organizations ->
-            organizations {
-
-            }
+        return {
         }
     }
     // factory method to create instance
@@ -67,8 +65,8 @@ class BitbucketRepoProvider extends RepoProvider {
 
     @Override
     Closure asOrganizations() {
-        return super.asOrganizations().with { job ->
-            job.organisations {
+        return { job ->
+            job.organizations {
                 bitbucket {
                     repoOwner(this.owner)
                     serverUrl(this.url)
