@@ -127,11 +127,11 @@ class JobFactory {
         }
     }
 
+    // build up credentials set for the processed Item (Job / folder)
     Closure itemCredentials() {
         return { item ->
             item.properties {
                 folderCredentialsProperty {
-
                     for (org_creds in this.raw.jenkins.credentials) {
                         def cred_list = org_creds.credentials
                         // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
@@ -198,9 +198,8 @@ class JobFactory {
         orgFolder.with(repoProvider.repoTriggers())
         orgFolder.with(repoProvider.asOrganizations())
         orgFolder.with(this.itemCredentials())
-        orgFolder.with(this.itemProperties())
+        // orgFolder.with(this.itemProperties())
 
-        orgFolder.with {this.itemCredentials()}
         // return complete configured job
         return orgFolder
 
