@@ -92,9 +92,8 @@ class JobFactory {
 
     }
 
-    String getOwner() {
-        return this.owner
-    }
+    // setter / getters are created implicitly
+
     private buildPermissions(List permissionObjects) {
         for (pm in permissionObjects) {
             String principal = pm.name
@@ -103,13 +102,6 @@ class JobFactory {
         }
     }
 
-    boolean isBuildTags() {
-        return buildTags
-    }
-
-    RepoProvider getRepoProvider() {
-        return this.repoProvider
-    }
 
     Folder makeFolder() {
         return _dslFactory.folder(this.folder) {
@@ -127,8 +119,6 @@ class JobFactory {
     }
 
     public OrganizationFolderJob makeOrganizationFolder() {
-
-        def repoProvider = this.getRepoProvider()
 
         def orgFolder = _dslFactory.organizationFolder(this.folder) {
             displayName(this.name)
@@ -158,7 +148,7 @@ class JobFactory {
 
 
         orgFolder.with(repoProvider.repoTriggers())
-        orgFolder.with(repoProvider.getOrganizations())
+        orgFolder.with(repoProvider.asOrganizations())
 
         // return complete configured job
         return orgFolder

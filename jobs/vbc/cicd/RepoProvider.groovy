@@ -23,10 +23,10 @@ abstract class RepoProvider {
 
     }
 
-    public abstract Closure getScmDefinition()
-    public abstract Closure repoTriggers()
+    abstract Closure getScmDefinition()
+    abstract Closure repoTriggers()
 
-    public Closure getOrganizations() {
+    Closure asOrganizations() {
         return { organizations ->
             organizations {
 
@@ -34,7 +34,7 @@ abstract class RepoProvider {
         }
     }
     // factory method to create instance
-    public static RepoProvider newRepoProvider(Map org) {
+    static RepoProvider newRepoProvider(Map org) {
         def type = org.jenkins.provider.type
 
         switch (type) {
@@ -55,7 +55,7 @@ class BitbucketRepoProvider extends RepoProvider {
 
     def owner = null
 
-    def BitbucketRepoProvider(Map org) {
+    BitbucketRepoProvider(Map org) {
         super(org)
         this.owner = org.owner
     }
@@ -66,8 +66,8 @@ class BitbucketRepoProvider extends RepoProvider {
     }
 
     @Override
-    Closure getOrganizations() {
-        return super.getOrganizations().with { organisations ->
+    Closure asOrganizations() {
+        return super.asOrganizations().with { organisations ->
             organisations {
                 bitbucket {
                     repoOwner(this.owner)
