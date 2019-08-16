@@ -64,7 +64,7 @@ class JobFactory {
     private String owner = "XXX"
     private String name = "no name set"
     private String description = ""
-    private Boolean buildTags = Boolean.FALSE
+    private Boolean buildTags = false
     private String folder = null
 
     private Map<String,List<String>> permissionSets = new HashMap<>()
