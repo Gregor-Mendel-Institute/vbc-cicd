@@ -1,6 +1,7 @@
 package vbc.cicd
 
 import javaposse.jobdsl.dsl.Folder
+import javaposse.jobdsl.dsl.Item
 import javaposse.jobdsl.dsl.jobs.OrganizationFolderJob
 
 
@@ -110,11 +111,42 @@ class JobFactory {
     }
 
 
-    Closure makeMultibranchJob() {
+    Item makeMultibranchJob() {
         return _dslFactory.multibranchPipelineJob(this.folder) {
             displayName("Molecule Cookiecutter")
             description("test the cookiecutter template for creating new ansible roles")
 
+        }
+    }
+
+    Closure itemProperties() {
+        return { item ->
+            item.properties {
+
+            }
+        }
+    }
+
+    Closure itemCredentials() {
+        return { item ->
+            item.properties {
+                folderCredentialsProperty {
+                    domainCredentials {
+
+                    }
+                }
+            }
+        }
+    }
+
+    Closure folderAuthorization() {
+        return { folder ->
+            folder.authorization {
+                // jobUtils.buildPermissions(org.permissions)
+                for (perm in this.permissionSets) {
+                    permissions(perm.key, perm.value)
+                }
+            }
         }
     }
 
@@ -128,28 +160,24 @@ class JobFactory {
             // dynamically setup the right organization
             //organizations repoProvider.getOrganization()
 
-            authorization {
-                // jobUtils.buildPermissions(org.permissions)
-                for (perm in this.permissionSets) {
-                    permissions(perm.key, perm.value)
-                }
-            }
-
-            /*
             // this is how we detect that there is something to do for us
             projectFactories {
                 workflowMultiBranchProjectFactory {
                     // Relative location within the checkout of your Pipeline script.
                     scriptPath("Jenkinsfile")
+                    scriptPath("Jenkinsfile.vbc")
                 }
             }
-            */
         }
 
 
+        orgFolder.with(this.folderAuthorization())
         orgFolder.with(repoProvider.repoTriggers())
         orgFolder.with(repoProvider.asOrganizations())
+        orgFolder.with(this.itemCredentials())
+        orgFolder.with(this.itemProperties())
 
+        orgFolder.with {this.itemCredentials()}
         // return complete configured job
         return orgFolder
 
