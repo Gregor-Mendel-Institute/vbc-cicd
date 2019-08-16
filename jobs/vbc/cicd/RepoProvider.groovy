@@ -66,23 +66,21 @@ class BitbucketRepoProvider extends RepoProvider {
     @Override
     Closure asOrganizations() {
         return { job ->
-            job.organizations {
-                bitbucket {
-                    repoOwner(this.owner)
-                    serverUrl(this.url)
+            bitbucket {
+                repoOwner(this.owner)
+                serverUrl(this.url)
 
-                    // credentials for API access
-                    credentialsId(this.credentialsId)
+                // credentials for API access
+                credentialsId(this.credentialsId)
 
-                    // this one is deprecated
-                    //autoRegisterHooks(true)
-                    traits {
+                // this one is deprecated
+                //autoRegisterHooks(true)
+                traits {
 
-                        sourceWildcardFilter {
-                            // Space-separated list of project name patterns to consider.
-                            includes(this.includes)
-                            excludes(this.excludes)
-                        }
+                    sourceWildcardFilter {
+                        // Space-separated list of project name patterns to consider.
+                        includes(this.includes)
+                        excludes(this.excludes)
                     }
                 }
             }
@@ -91,16 +89,14 @@ class BitbucketRepoProvider extends RepoProvider {
 
     @Override
     Closure repoTriggers() {
-        return { job ->
-            job.triggers {
-                periodicFolderTrigger {
-                    // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
-                    // rescan every 15 mins
-                    interval("60")
-                }
-                //periodic(60) // DEPRECATED
-                bitbucketPush()
+        return {
+            periodicFolderTrigger {
+                // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
+                // rescan every 15 mins
+                interval("60")
             }
+            //periodic(60) // DEPRECATED
+            bitbucketPush()
         }
     }
 }

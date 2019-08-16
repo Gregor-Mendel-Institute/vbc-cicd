@@ -1,5 +1,6 @@
 package vbc.cicd
 
+import javaposse.jobdsl.dsl.DslFactory
 import javaposse.jobdsl.dsl.Folder
 import javaposse.jobdsl.dsl.Item
 import javaposse.jobdsl.dsl.jobs.OrganizationFolderJob
@@ -72,7 +73,7 @@ class JobFactory {
     private RepoProvider repoProvider = null
 
     private Map raw = null
-    def _dslFactory
+    DslFactory _dslFactory = null
 
     public JobFactory(dslFactory, Map org) {
 
@@ -90,13 +91,12 @@ class JobFactory {
         buildPermissions((List) org.get('groups', []))
         buildPermissions((List) org.get('users', []))
         this.repoProvider = RepoProvider.newRepoProvider(org)
-
     }
 
     // setter / getters are created implicitly
 
     private buildPermissions(List permissionObjects) {
-        for (pm in permissionObjects) {
+        for (Map pm in permissionObjects) {
             String principal = pm.name
             // also create permissions if empty, using this to explicitly shut off access inherited from above
             List<String> permissions = pm.get('jenkins_perms', [])
@@ -120,16 +120,8 @@ class JobFactory {
         }
     }
 
-    Closure itemProperties() {
-        return { item ->
-            item.properties {
-
-            }
-        }
-    }
 
     Closure generateDomainCredentials(Map org_creds) {
-
         // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
         Map cred_domain = org_creds.get('domain', [:])
 
@@ -147,8 +139,8 @@ class JobFactory {
                 }
             }
 
-            for (cc in org_creds.credentials) {
-                def cc_scope = cc.get('scope', 'GLOBAL')
+            for (Map cc in org_creds.credentials) {
+                String cc_scope = cc.get('scope', 'GLOBAL')
                 usernamePasswordCredentialsImpl {
                     // Determines where this credential can be used.
                     scope(cc_scope)
@@ -179,12 +171,10 @@ class JobFactory {
     Closure itemCredentials() {
         def item_credentials = this.raw.jenkins.credentials
 
-        return { item ->
-            item.properties {
-                folderCredentialsProperty {
-                    for (org_creds in item_credentials) {
-                        domainCredentials { this.generateDomainCredentials(org_creds) }
-                    }
+        return {
+            folderCredentialsProperty {
+                for (org_creds in item_credentials) {
+                    domainCredentials { this.generateDomainCredentials(org_creds) }
                 }
             }
         }
@@ -214,15 +204,13 @@ class JobFactory {
             }
         }
 
-        orgFolder.with(repoProvider.repoTriggers())
-        orgFolder.with(repoProvider.asOrganizations())
-        orgFolder.with(this.itemCredentials())
-        // orgFolder.with(this.itemProperties())
+        orgFolder.triggers this.repoProvider.repoTriggers()
+        orgFolder.organizations this.repoProvider.asOrganizations()
+        orgFolder.properties this.itemCredentials()
 
+
+        // orgFolder.with(this.itemProperties())
         // return complete configured job
         return orgFolder
-
-
-
     }
 }
