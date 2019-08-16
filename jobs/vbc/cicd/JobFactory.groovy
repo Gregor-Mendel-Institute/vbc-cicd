@@ -132,7 +132,12 @@ class JobFactory {
             item.properties {
                 folderCredentialsProperty {
                     domainCredentials {
+                        for (org_creds in this.raw.jenkins.credentials) {
+                            def cred_list = org_creds.credentials
+                            // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
+                            def cred_domain = org_creds.get('domain', [:])
 
+                        }
                     }
                 }
             }
@@ -165,7 +170,6 @@ class JobFactory {
                 workflowMultiBranchProjectFactory {
                     // Relative location within the checkout of your Pipeline script.
                     scriptPath("Jenkinsfile")
-                    scriptPath("Jenkinsfile.vbc")
                 }
             }
         }
