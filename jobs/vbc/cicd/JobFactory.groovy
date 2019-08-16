@@ -98,7 +98,8 @@ class JobFactory {
     private buildPermissions(List permissionObjects) {
         for (pm in permissionObjects) {
             String principal = pm.name
-            List<String> permissions = pm.jenins_perms
+            // also create permissions if empty, using this to explicitly shut off access inherited from above
+            List<String> permissions = pm.get('jenkins_perms', [])
             permissionSets.put(principal, permissions)
         }
     }
@@ -132,8 +133,8 @@ class JobFactory {
         // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
         Map cred_domain = org_creds.get('domain', [:])
 
-        return { thing ->
-            thing.domain {
+        return {
+            domain {
                 name(cred_domain.get('name'))
                 description(cred_domain.get('description'))
                 specifications {
@@ -143,6 +144,22 @@ class JobFactory {
                         // A comma separated blacklist of hostnames.
                         excludes(cred_domain.get('excludes', ""))
                     }
+                }
+            }
+
+            for (cc in org_creds.credentials) {
+                def cc_scope = cc.get('scope', 'GLOBAL')
+                usernamePasswordCredentialsImpl {
+                    // Determines where this credential can be used.
+                    scope(cc_scope)
+                    // An internal unique ID by which these credentials are identified from jobs and other configuration.
+                    id(cc.id)
+                    // An optional description to help tell similar credentials apart.
+                    description(cc.get('description', ''))
+                    // The username.
+                    username(cc.username)
+                    // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
+                    password(cc.get('password', 'undefined-testing-value').toString())
                 }
             }
 
@@ -173,23 +190,17 @@ class JobFactory {
         }
     }
 
-    Closure folderAuthorization() {
-        return { folder ->
-            folder.authorization {
-                // jobUtils.buildPermissions(org.permissions)
-                for (perm in this.permissionSets) {
-                    permissions(perm.key, perm.value)
-                }
-            }
-        }
-    }
-
     public OrganizationFolderJob makeOrganizationFolder() {
 
         def orgFolder = _dslFactory.organizationFolder(this.folder) {
             displayName(this.name)
             description(this.description)
 
+            authorization {
+                for (perm in this.permissionSets) {
+                    permissions(perm.key, perm.value)
+                }
+            }
 
             // dynamically setup the right organization
             //organizations repoProvider.getOrganization()
@@ -203,8 +214,6 @@ class JobFactory {
             }
         }
 
-
-        orgFolder.with(this.folderAuthorization())
         orgFolder.with(repoProvider.repoTriggers())
         orgFolder.with(repoProvider.asOrganizations())
         orgFolder.with(this.itemCredentials())
