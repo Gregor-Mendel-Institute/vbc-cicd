@@ -138,7 +138,7 @@ class JobFactory {
                         def cred_domain = org_creds.get('domain', [:])
 
                         domainCredentials {
-                            /*
+
                             domain {
                                 name(cred_domain.get('name'))
                                 description(cred_domain.get('description'))
@@ -151,6 +151,7 @@ class JobFactory {
                                     }
                                 }
                             }
+                            /*
                             credentials {
                                 //basicSSHUserPrivateKey {}
                                 //certificateCredentialsImpl {}
