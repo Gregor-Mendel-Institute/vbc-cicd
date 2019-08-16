@@ -67,7 +67,7 @@ class JobFactory {
     private Boolean buildTags = false
     private String folder = null
 
-    private Map<String,List<String>> permissionSets = new HashMap<>()
+    private Map<String,List<String>> permissionSets = [:]
     private RepoProvider repoProvider = null
 
     private Map raw = null
