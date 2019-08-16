@@ -187,6 +187,7 @@ class JobFactory {
             description(this.description)
 
             authorization {
+                assert this.permissionSets.size() > 0
                 for (perm in this.permissionSets) {
                     permissions(perm.key, perm.value)
                 }
