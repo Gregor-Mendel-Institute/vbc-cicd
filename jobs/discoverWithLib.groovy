@@ -10,6 +10,20 @@ org.jenkins.provider= [:]
 org.jenkins.provider.type = 'bitbucket'
 org.jenkins.provider.url = 'ssh://git@bitbucket.imp.ac.at/abc/asdf.git'
 org.jenkins.provider.credentialsId = 'asdf-qwer-1234'
+org.jenkins.credentials = [
+        [
+                domain: [
+                        name: "myCreds",
+                        description: "wherever, whatever",
+                        includes: "example.com",
+                        excludes: ""
+                ],
+                credentials: [
+                ]
+        ]
+]
+
+
 
 org.groups = []
 
