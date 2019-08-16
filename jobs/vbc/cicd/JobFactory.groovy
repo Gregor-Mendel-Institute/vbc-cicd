@@ -191,23 +191,24 @@ class JobFactory {
                                 }
                             }
 
-                            for (Map cc in dom_creds.credentials) {
-                                String cc_scope = cc.get('scope', 'GLOBAL')
+                            credentials {
+                                for (Map cc in dom_creds.credentials) {
+                                    String cc_scope = cc.get('scope', 'GLOBAL')
 
-                                usernamePasswordCredentialsImpl {
-                                    // Determines where this credential can be used.
-                                    scope(cc_scope)
-                                    // An internal unique ID by which these credentials are identified from jobs and other configuration.
-                                    id(cc.id)
-                                    // An optional description to help tell similar credentials apart.
-                                    description(cc.get('description', ''))
-                                    // The username.
-                                    username(cc.username)
-                                    // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
-                                    password(cc.get('password', 'undefined-testing-value').toString())
+                                    usernamePasswordCredentialsImpl {
+                                        // Determines where this credential can be used.
+                                        scope(cc_scope)
+                                        // An internal unique ID by which these credentials are identified from jobs and other configuration.
+                                        id(cc.id)
+                                        // An optional description to help tell similar credentials apart.
+                                        description(cc.get('description', ''))
+                                        // The username.
+                                        username(cc.username)
+                                        // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
+                                        password(cc.get('password', 'undefined-testing-value').toString())
+                                    }
                                 }
                             }
-
                             /*
                             credentials {
                                 //basicSSHUserPrivateKey {}
