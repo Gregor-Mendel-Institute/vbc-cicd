@@ -139,9 +139,9 @@ class JobFactory {
                         // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
                         def cred_domain = org_creds.get('domain', [:])
 
-                        delegate.domainCredentials {
+                        domainCredentials {
 
-                            delegate.domain {
+                            domain {
                                 name(cred_domain.get('name'))
                                 description(cred_domain.get('description'))
                                 specifications {
