@@ -173,47 +173,50 @@ class JobFactory {
         assert item_credentials.size() > 0
         return {
             folderCredentialsProperty {
-                for (Map dom_creds in item_credentials) {
-                    Map cred_domain = dom_creds.domain
-                    domainCredentials {
-                        domain {
-                            name(cred_domain.get('name'))
-                            description(cred_domain.get('description'))
-                            specifications {
-                                hostnameSpecification {
-                                    // A comma separated whitelist of hostnames.
-                                    includes(cred_domain.get('includes', ""))
-                                    // A comma separated blacklist of hostnames.
-                                    excludes(cred_domain.get('excludes', ""))
+                // yes domainCredentials is nested 2x here
+                domainCredentials {
+                    for (Map dom_creds in item_credentials) {
+                        Map cred_domain = dom_creds.domain
+                        domainCredentials {
+                            domain {
+                                name(cred_domain.get('name'))
+                                description(cred_domain.get('description'))
+                                specifications {
+                                    hostnameSpecification {
+                                        // A comma separated whitelist of hostnames.
+                                        includes(cred_domain.get('includes', ""))
+                                        // A comma separated blacklist of hostnames.
+                                        excludes(cred_domain.get('excludes', ""))
+                                    }
                                 }
                             }
-                        }
 
-                        for (Map cc in dom_creds.credentials) {
-                            String cc_scope = cc.get('scope', 'GLOBAL')
+                            for (Map cc in dom_creds.credentials) {
+                                String cc_scope = cc.get('scope', 'GLOBAL')
 
-                            usernamePasswordCredentialsImpl {
-                                // Determines where this credential can be used.
-                                scope(cc_scope)
-                                // An internal unique ID by which these credentials are identified from jobs and other configuration.
-                                id(cc.id)
-                                // An optional description to help tell similar credentials apart.
-                                description(cc.get('description', ''))
-                                // The username.
-                                username(cc.username)
-                                // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
-                                password(cc.get('password', 'undefined-testing-value').toString())
+                                usernamePasswordCredentialsImpl {
+                                    // Determines where this credential can be used.
+                                    scope(cc_scope)
+                                    // An internal unique ID by which these credentials are identified from jobs and other configuration.
+                                    id(cc.id)
+                                    // An optional description to help tell similar credentials apart.
+                                    description(cc.get('description', ''))
+                                    // The username.
+                                    username(cc.username)
+                                    // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
+                                    password(cc.get('password', 'undefined-testing-value').toString())
+                                }
                             }
-                        }
 
-                        /*
-                        credentials {
-                            //basicSSHUserPrivateKey {}
-                            //certificateCredentialsImpl {}
-                            for (cc in cred_list) {
+                            /*
+                            credentials {
+                                //basicSSHUserPrivateKey {}
+                                //certificateCredentialsImpl {}
+                                for (cc in cred_list) {
+                                }
                             }
+                            */
                         }
-                        */
                     }
                 }
             }
