@@ -5,7 +5,6 @@ def org = [:]
 org.owner = 'ABC'
 org.name = 'ABC project'
 org.jenkins = [:]
-org.jenkins.credentials = []
 org.jenkins.provider= [:]
 org.jenkins.provider.type = 'bitbucket'
 org.jenkins.provider.url = 'ssh://git@bitbucket.imp.ac.at/abc/asdf.git'
