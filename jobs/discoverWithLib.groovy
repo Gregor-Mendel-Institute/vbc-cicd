@@ -23,6 +23,12 @@ org.jenkins.credentials = [
                 type: 'usernamepassword',
                 username: "the_user_name",
                 password: "the secret password"
+            ],
+            [
+                id: 'XXX-YYYY-1234',
+                type: 'usernamepassword',
+                username: "the_xxx_yyy",
+                password: "the secret password"
             ]
         ]
     ]

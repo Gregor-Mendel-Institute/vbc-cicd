@@ -170,7 +170,9 @@ class JobFactory {
     // build up credentials set for the processed Item (Job / folder)
     Closure itemCredentials() {
         List item_credentials = this.raw.jenkins.credentials
-        assert item_credentials.size() > 0
+
+        CredentialsBuilder builder = new CredentialsBuilder(item_credentials)
+
         return {
             folderCredentialsProperty {
                 // yes domainCredentials is nested 2x here
@@ -193,7 +195,7 @@ class JobFactory {
 
                             credentials {
                                 for (Map cc in dom_creds.credentials) {
-                                    String cc_scope = cc.get('scope', 'GLOBAL')
+
 
                                     usernamePasswordCredentialsImpl {
                                         // Determines where this credential can be used.
