@@ -36,6 +36,10 @@ org.groups = [
             "hudson.model.Item.Build",
             "hudson.model.Item.Cancel"
         ]
+    ],
+    [
+        name: "group_without_Access",
+        jenkins_perms: []
     ]
 ]
 
