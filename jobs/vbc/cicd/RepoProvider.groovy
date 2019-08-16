@@ -67,8 +67,8 @@ class BitbucketRepoProvider extends RepoProvider {
 
     @Override
     Closure asOrganizations() {
-        return super.asOrganizations().with { organisations ->
-            organisations {
+        return super.asOrganizations().with { job ->
+            job.organisations {
                 bitbucket {
                     repoOwner(this.owner)
                     serverUrl(this.url)
