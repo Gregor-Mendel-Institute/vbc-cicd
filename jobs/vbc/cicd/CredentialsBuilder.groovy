@@ -1,7 +1,9 @@
 package vbc.cicd
-import java.lang.UnsupportedOperationException
 
-import vbc.cicd.*
+import vbc.cicd.credentials.Credentials
+import vbc.cicd.credentials.CredentialsDomain
+import vbc.cicd.credentials.SSHPrivateKeyCredentials
+import vbc.cicd.credentials.UsernamePasswordCredentials
 
 class CredentialsBuilder {
 

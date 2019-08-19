@@ -4,6 +4,7 @@ import javaposse.jobdsl.dsl.DslFactory
 import javaposse.jobdsl.dsl.Folder
 import javaposse.jobdsl.dsl.Item
 import javaposse.jobdsl.dsl.jobs.OrganizationFolderJob
+import vbc.cicd.repo.RepoProvider
 
 
 class JobFactory {

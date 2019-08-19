@@ -1,10 +1,10 @@
-package vbc.cicd
+package vbc.cicd.credentials
 
 
 
 class CredentialsDomain {
     static CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(null)
-    
+
     String name
     String description
     String includes
