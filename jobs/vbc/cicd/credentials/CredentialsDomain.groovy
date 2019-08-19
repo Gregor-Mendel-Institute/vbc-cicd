@@ -3,7 +3,7 @@ package vbc.cicd.credentials
 
 
 class CredentialsDomain {
-    static CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(null)
+    static CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(name: null, description: null, includes: null, excludes: null)
 
     String name
     String description
