@@ -14,6 +14,12 @@ class CredentialsBuilder {
 
     CredentialsBuilder(Map credentialsData) {
 
+        Map domainData = credentialsData.get('domain')
+        this.domain = CredentialsDomain.DEFAULT_DOMAIN
+        // update with specific domain data if we have it
+        if (domainData) {
+            this.domain = new CredentialsDomain(domainData)
+        }
         this.domain = credentialsData.get('domain', CredentialsDomain.DEFAULT_DOMAIN)
 
         for (Map cred in credentialsData.credentials) {
