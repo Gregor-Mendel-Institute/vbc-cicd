@@ -1,4 +1,4 @@
-import vbc.cicd.JobFactory
+import vbc.cicd.*
 
 def org = [:]
 
@@ -29,6 +29,13 @@ org.jenkins.credentials = [
                 type: 'usernamepassword',
                 username: "the_xxx_yyy",
                 password: "the secret password"
+            ],
+            [
+                    id: 'SSSS-HHHH-1234',
+                    type: 'sshprivatekey',
+                    username: "the_xxx_yyy",
+                    password: "usually unused",
+                    privatekey: "--- PRIVATE SSH KEY ---- asdfasfasdf ;lkj;lkj;lkj"
             ]
         ]
     ]
