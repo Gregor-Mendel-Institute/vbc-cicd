@@ -178,7 +178,7 @@ class JobFactory {
                 domainCredentials {
                     for (creds_in_domain in item_credentials) {
                         CredentialsBuilder builder = new CredentialsBuilder(creds_in_domain)
-                        domainCredentials = builder.asDsl()
+                        domainCredentials builder.asDsl()
                     }
                 }
             }

@@ -7,7 +7,6 @@ import vbc.cicd.credentials.UsernamePasswordCredentials
 
 class CredentialsBuilder {
 
-
     CredentialsDomain domain = null
     List<Credentials> credentials = []
 
@@ -46,7 +45,19 @@ class CredentialsBuilder {
 
             credentials {
                 for (Credentials c in this.credentials) {
-                    c.asDsl()
+                    switch (c.class) {
+                        case UsernamePasswordCredentials.class:
+                            usernamePasswordCredentialsImpl c.asDsl()
+                            break
+
+                        case SSHPrivateKeyCredentials.class:
+                            basicSSHUserPrivateKey c.asDsl()
+                            break
+
+                        default:
+                            throw new UnsupportedOperationException("cannot handle class " + c.class)
+                    }
+
                 }
             }
         }

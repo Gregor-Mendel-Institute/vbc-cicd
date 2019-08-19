@@ -1,7 +1,5 @@
 package vbc.cicd.credentials
 
-
-
 class CredentialsDomain {
     static CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(name: null, description: null, includes: null, excludes: null)
 
@@ -19,21 +17,21 @@ class CredentialsDomain {
 
     CredentialsDomain(Map domain) {
         this.name = domain.name
-        this.description = domain.description
-        this.includes = domain.includes
-        this.excludes = domain.excludes
+        this.description = domain.get('description', '')
+        this.includes = domain.get('includes', '')
+        this.excludes = domain.get('excludes', '')
     }
 
     Closure asDsl() {
         return {
-            name(this.get('name'))
-            description(this.get('description'))
+            name(this.name)
+            description(this.description)
             specifications {
                 hostnameSpecification {
                     // A comma separated whitelist of hostnames.
-                    includes(this.get('includes', ""))
+                    includes(this.includes)
                     // A comma separated blacklist of hostnames.
-                    excludes(this.get('excludes', ""))
+                    excludes(this.excludes)
                 }
             }
         }
