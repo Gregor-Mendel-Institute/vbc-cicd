@@ -8,9 +8,6 @@ import vbc.cicd.credentials.UsernamePasswordCredentials
 class CredentialsBuilder {
 
 
-
-
-
     CredentialsDomain domain = null
     List<Credentials> credentials = []
 
