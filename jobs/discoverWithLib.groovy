@@ -38,6 +38,17 @@ org.jenkins.credentials = [
                     privatekey: "--- PRIVATE SSH KEY ---- asdfasfasdf ;lkj;lkj;lkj"
             ]
         ]
+    ],
+        // these should end up in global domain
+    [
+        credentials: [
+                [
+                id: "muy-global-creds-id",
+                type: "usernamepassword",
+                username: "my_name",
+                password: "my_password"
+            ]
+        ]
     ]
 ]
 org.groups = [
