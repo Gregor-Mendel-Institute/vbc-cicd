@@ -6,6 +6,8 @@ def orgJobs = []
 for (org in discoverOrgs) {
     if (org.jenkins.provider.type != 'bitbucket')
         continue
+    if (org.owner == 'ABC')
+        continue
 
     def buildTags = org.jenkins.buildTags
     def provider = org.jenkins.provider

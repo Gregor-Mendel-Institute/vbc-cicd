@@ -48,15 +48,7 @@ pipeline {
                 }
             }
         }
-/*
-        stage('build') {
-            steps {
-                script {
-                    sh "./gradlew build --no-daemon"
-                }
-            }
-        }
-*/
+
         stage('generate') {
             steps {
                 script {
@@ -68,12 +60,15 @@ pipeline {
 
 
                     // lookup all the credentials
-                    def root_credentials = discovery_data.jenkins_credentials
-                    for (creds_in_domain in root_credentials.system) {
-                      echo "lookup for domain: ${creds_in_domain.domain.name}"
-                      for (cc in creds_in_domain.credentials) {
-                        echo "   looking for ${cc.id}"
-                      }
+                    def seed_orgs = discovery_data.jenkins_seed_orgs
+                    for (org in seed_orgs) {
+                        echo "fetching credentials specific to ${org.owner}"
+                        for (creds_in_domain in org.jenkins.credentials) {
+                          echo "lookup for domain: ${creds_in_domain.domain.name}"
+                          for (cc in creds_in_domain.credentials) {
+                            echo "   looking for ${cc.id}"
+                          }
+                        }
                     }
 
                     // call the jobdsl script for the roles
@@ -86,7 +81,7 @@ pipeline {
                            targets: 'jobs/*.groovy',
                            //additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
-                               discoverOrgs: discovery_data.jenkins_seed_orgs
+                               discoverOrgs: seed_orgs
                            ]
                  }
             }
