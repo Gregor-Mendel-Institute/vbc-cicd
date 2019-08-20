@@ -65,6 +65,17 @@ pipeline {
                     // Bitbucket organizations to scan for roles
                     //def discovery_data = readYaml file: "default_discovery.yml"
                     def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
+
+
+                    // lookup all the credentials
+                    def root_credentials = discovery_data.jenkins_credentials
+                    for (creds_in_domain in root_credentials.system) {
+                      echo "lookup for domain: ${creds_in_domain.domain.name}"
+                      for (cc in creds_in_domain.credentials) {
+                        echo "   looking for ${cc.id}"
+                      }
+                    }
+
                     // call the jobdsl script for the roles
                     jobDsl removedConfigFilesAction: 'DELETE',
                            removedJobAction: 'DELETE',
