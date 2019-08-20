@@ -2,7 +2,9 @@ package vbc.cicd
 
 import vbc.cicd.credentials.Credentials
 import vbc.cicd.credentials.CredentialsDomain
+import vbc.cicd.credentials.FileCredentials
 import vbc.cicd.credentials.SSHPrivateKeyCredentials
+import vbc.cicd.credentials.StringCredentials
 import vbc.cicd.credentials.UsernamePasswordCredentials
 
 class CredentialsBuilder {
@@ -30,6 +32,10 @@ class CredentialsBuilder {
                 return new UsernamePasswordCredentials(c.id, c.description, c.get('scope'), c.username, c.password)
             case 'sshprivatekey':
                 return new SSHPrivateKeyCredentials(c.id, c.description, c.get('scope'), c.username, c.privatekey, c.password)
+            case 'string':
+                return new StringCredentials(c.id, c.description, c.get('scope'), c.secret)
+            case 'file':
+                return new FileCredentials(c.id, c.description, c.get('scope'), c.content)
             default:
                 throw UnsupportedOperationException('cannot handle credentials of type ${c.type}')
         }
@@ -50,6 +56,14 @@ class CredentialsBuilder {
 
                         case SSHPrivateKeyCredentials.class:
                             basicSSHUserPrivateKey c.asDsl()
+                            break
+
+                        case StringCredentials.class:
+                            stringCredentialsImpl c.asDsl()
+                            break
+
+                        case FileCredentials.class:
+                            fileCredentialsImpl c.asDsl()
                             break
 
                         default:

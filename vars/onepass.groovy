@@ -52,7 +52,29 @@
 }
  */
 
-def call(String ItemName, String vault=null, String section='default', String field = 'password', String credentialsId=null) {
 
-  echo "doing the 1password lookup"
+def signin(String credentialsId) {
+    echo "signing in to 1Password using credentials: ${credentialsId}"
+
+    def onePassCredentials = [
+        usernamePassword(credentialsId: credentialsId, usernameVariable: "OP_USERNAME", passwordVariable: "OP_PASSWORD")
+    ]
+
+    withCredentials(onePassCredentials) {
+        def onepass_token = sh label: "onepass", script: 'echo $OP_PASSWORD | op signin --raw $OP_USERNAME', returnStdout: true
+
+        // FIXME this is leaking
+        echo "got the token: ${onepass_token}"
+    }
+
+
+
+
 }
+
+
+def lookup(String itemName, String vault=null, String section='default', String field = 'password') {
+
+}
+
+return this

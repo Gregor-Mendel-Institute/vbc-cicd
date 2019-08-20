@@ -58,6 +58,7 @@ pipeline {
                     //def discovery_data = readYaml file: "default_discovery.yml"
                     def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
 
+                    onepass.signin('svc-1password')
 
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
@@ -74,7 +75,7 @@ pipeline {
                           }
 
                           for (cc in creds_in_domain.credentials) {
-                            echo "   looking for ${cc.id}"
+                            echo "looking for ${cc.id}"
                           }
                         }
                     }
