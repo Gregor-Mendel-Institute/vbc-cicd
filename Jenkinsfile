@@ -64,7 +64,15 @@ pipeline {
                     for (org in seed_orgs) {
                         echo "fetching credentials specific to ${org.owner}"
                         for (creds_in_domain in org.jenkins.credentials) {
-                          echo "lookup for domain: ${creds_in_domain.domain.name}"
+
+                          def domain = creds_in_domain.get('domain')
+                          if (domain != null) {
+                            echo "lookup for domain: ${domain.name}"
+                          }
+                          else {
+                            echo "lookup for DEFAULT domain:"
+                          }
+
                           for (cc in creds_in_domain.credentials) {
                             echo "   looking for ${cc.id}"
                           }
@@ -78,7 +86,7 @@ pipeline {
                            //lookupStrategy: 'SEED_JOB',
                            lookupStrategy: 'JENKINS_ROOT',
                            sandbox: true,
-                           targets: 'jobs/*.groovy',
+                           targets: 'jobs/discoverWithLib.groovy',
                            //additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
                                discoverOrgs: seed_orgs
