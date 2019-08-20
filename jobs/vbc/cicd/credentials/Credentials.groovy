@@ -9,7 +9,10 @@ abstract class Credentials {
     Credentials(String id, String description, String scope ='global') {
         this.id = id
         this.description = description
-        this.scope = scope
+
+        if (scope != null) {
+            this.scope = scope
+        }
     }
 
     abstract Closure asDsl()
