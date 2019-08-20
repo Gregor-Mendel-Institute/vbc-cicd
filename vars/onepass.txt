@@ -1,0 +1,24 @@
+<p>
+Onepassword signin requires 2 credentials of type UsernamePassword:
+
+function:
+
+def sessionToken = signin(String credentialsUsernamePassword, String credentialsDomainMasterKey)
+
+* username + password=
+* domain + masterkey
+</p>
+
+<p>
+
+lookup requires parameter (must call signin() successfully before):
+String the_secret = lookup(String itemName, String vault=null, String section='default', String field = 'password')
+
+will return the field value as a single string=
+</p>
+
+
+<p>
+will return the whole item as Map
+Map the_item = raw(String itemName, String vault=null)
+</p>

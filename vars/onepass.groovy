@@ -53,23 +53,33 @@
  */
 
 
-def signin(String credentialsId) {
-    echo "signing in to 1Password using credentials: ${credentialsId}"
+def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey) {
+    echo "signing in to 1Password using credentials: ${credentialsUsernamePassword} and ${credentialsDomainMasterKey}"
 
     def onePassCredentials = [
-        usernamePassword(credentialsId: credentialsId, usernameVariable: "OP_USERNAME", passwordVariable: "OP_PASSWORD")
+        usernamePassword(credentialsId: credentialsUsernamePassword, usernameVariable: "OP_USERNAME", passwordVariable: "OP_PASSWORD"),
+        usernamePassword(credentialsId: credentialsDomainMasterKey, usernameVariable: "OP_DOMAIN", passwordVariable: "OP_DOMAIN_MASTER_KEY")
     ]
 
+    def onepass_token = null
     withCredentials(onePassCredentials) {
-        def onepass_token = sh label: "onepass", script: 'echo $OP_PASSWORD | op signin --raw $OP_USERNAME', returnStdout: true
 
+        withEnv(["OP_DOMAIN=${op_domain}", "OP_MASTER_KEY=${op_master_key}"]) {
+            echo "onepass env:"
+            sh "env"
+            echo "will sign in to domain: ${env.OP_DOMAIN}"
+            // usage: op signin <signinaddress> <emailaddress> <secretkey> [--output=raw]
+            onepass_token = sh label: "onepass", script: 'echo $OP_PASSWORD | op signin $OP_DOMAIN $OP_USERNAME $OP_MASTER_KEY --output=raw', returnStdout: true
+        }
         // FIXME this is leaking
         echo "got the token: ${onepass_token}"
+
+        if (onepass_token == null) {
+            error('failed to retrieve 1Password session token')
+        }
     }
 
-
-
-
+    return onepass_token
 }
 
 
