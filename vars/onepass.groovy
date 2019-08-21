@@ -95,7 +95,7 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
     return onePassToken
 }
 
-def lookup(itemName, vaultName=null, sectionName=null, fieldName = 'password') {
+def lookup(String itemName, String vaultName=null, String sectionName=null, String fieldName = 'password') {
 
 
     Map raw = raw(itemName, vaultName)
@@ -131,9 +131,9 @@ def lookup(itemName, vaultName=null, sectionName=null, fieldName = 'password') {
 //@Memoized(maxCacheSize=100)
 def raw(String itemName, String vault = null) {
 
-//    def cached_item = itemCache.get(itemName)
-//    if (cached_item)
-//        return cached_item
+    def cached_item = itemCache.get(itemName)
+    if (cached_item)
+        return cached_item
 
     echo "findig item ${itemName} in ${vault}"
     def vault_param = vault ? "--vault=${vault}" : ""
@@ -147,8 +147,12 @@ def raw(String itemName, String vault = null) {
     //echo "raw item data: ${item_raw}"
 
 
-//    itemCache[itemName] = item_data
+    itemCache[itemName] = item_data
     return item_data
+}
+
+def clearCache() {
+    return itemCache.clear()
 }
 
 return this

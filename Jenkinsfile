@@ -60,14 +60,13 @@ pipeline {
 
                     echo "jenk onepass signin"
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
-                    echo "jenk onepass lookup default"
-                    def examplePassword = onepass.lookup('my_test_example') // should give password
-                    echo "jenk onepass lookup default field"
-                    def exampleUsername = onepass.lookup('my_test_example', null, null, 'username')
-                    echo "jenk onepass lookup section field"
-                    //                                    (itemName,                    vaultName=null,  sectionName=null,          fieldName = 'password') {
-                    def exampleFieldValue = onepass.lookup itemName: 'my_test_example', vaultName: null, sectionName: "my_section", fieldName: 'my_field'
 
+                    def theVault = 'sandbox'
+
+                    // oneass.lookup (itemName,  vaultName=null, sectionName=null, fieldName = 'password') {
+                    def examplePassword = onepass.lookup('my_test_example') // should give password
+                    def exampleUsername = onepass.lookup('my_test_example', theVault, null, 'username')
+                    def exampleFieldValue = onepass.lookup('my_test_example', theVault, "my_section", fieldName: 'my_field')
 
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
