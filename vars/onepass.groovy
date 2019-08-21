@@ -60,7 +60,7 @@ Map itemCache = [:]
 @groovy.transform.Field
 def onePassToken = null
 
-def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey) {
+def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey, boolean returnStatus=false) {
     echo "signing in to 1Password using credentials: ${credentialsUsernamePassword} and ${credentialsDomainMasterKey}"
 
     def onePassCredentials = [
@@ -75,16 +75,23 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
         def signin_script = 'echo $OP_PASSWORD | op signin $OP_DOMAIN $OP_USERNAME $OP_MASTER_KEY --output=raw'
 
         onePassToken = sh label: "onepass", script: signin_script, returnStdout: true
-
+        // cleanup the token, remove linebreak
+        onePassToken = onePassToken.trim()
         // FIXME remove it, this is leaking, was: for debugging
         // echo "got the token: ${onepass_token}"
     }
 
-    if (onePassToken == null) {
+    if (!returnStatus && onePassToken == "") {
         error('failed to retrieve 1Password session token')
     }
 
-    onePassToken = onePassToken.trim()
+    if (returnStatus && onePassToken) {
+        return true
+    }
+    else {
+        return false
+    }
+
     return onePassToken
 }
 
@@ -130,10 +137,15 @@ def raw(String itemName, String vault = null) {
 
     echo "findig item ${itemName} in ${vault}"
     def vault_param = vault ? "--vault=${vault}" : ""
-    def item_raw = sh label: "onepass", script: "op get item --session=${onePassToken} ${itemName} ${vault_param}", returnStdout: true
 
+    def item_data = null
+    // avoid exposing the token in job logs
+    withEnv(["OP_TOKEN=${onePassToken}"]) {
+        def item_raw = sh label: "onepass", script: 'echo $OP_TOKEN | ' + "op get item ${itemName} ${vault_param}", returnStdout: true
+        item_data = readJSON text: item_raw
+    }
     //echo "raw item data: ${item_raw}"
-    def item_data = readJSON text: item_raw
+
 
 //    itemCache[itemName] = item_data
     return item_data
