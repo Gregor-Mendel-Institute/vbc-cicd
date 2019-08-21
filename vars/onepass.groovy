@@ -127,6 +127,7 @@ def raw(String itemName, String vault = null) {
 //    if (cached_item)
 //        return cached_item
 
+    echo "findig item ${itemName} in ${vault}"
     def vault_param = vault ? "--vault=${vault}" : ""
     def item_raw = sh label: "onepass", script: "op get item --session=${onePassToken} ${itemName} ${vault_param}", returnStdout: true
 
