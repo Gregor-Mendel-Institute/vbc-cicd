@@ -86,10 +86,36 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
     return onepass_token
 }
 
-def lookup(String itemName, String vault=null, String section='default', String field = 'password') {
+def lookup(String itemName, String vaultName=null, String sectionName=null, String fieldName = 'password') {
 
-    Map raw = raw(itemName, vault)
 
+    Map raw = raw(itemName, vaultName)
+
+    String lookupValue = null
+
+    if (sectionName) {
+        for (section in raw.sections) {
+            if (section.title == sectionName) {
+                for (field in section.fields) {
+                    if (field.t == fieldName) {
+                        lookupValue = field.v
+                    }
+                }
+            }
+        }
+    }
+    // we look in default fields
+    else {
+        for (Map field in raw.details.fields) {
+            if (field.name == fieldName) {
+                lookupValue = field.value
+                break
+            }
+        }
+    }
+
+    echo "lookup value: ${lookupValue}"
+    return lookupValue
 }
 
 // groovy method caching
