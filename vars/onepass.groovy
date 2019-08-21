@@ -132,8 +132,10 @@ def lookup(String itemName, String vaultName=null, String sectionName=null, Stri
 def raw(String itemName, String vault = null) {
 
     def cached_item = itemCache.get(itemName)
-    if (cached_item)
+    if (cached_item) {
+        echo "returning item '${itemName}' from cache."
         return cached_item
+    }
 
     echo "findig item ${itemName} in ${vault}"
     def vault_param = vault ? "--vault=${vault}" : ""
@@ -152,6 +154,7 @@ def raw(String itemName, String vault = null) {
 }
 
 def clearCache() {
+    echo "wiping 1Password items cache"
     return itemCache.clear()
 }
 

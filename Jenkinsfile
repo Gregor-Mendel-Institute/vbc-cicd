@@ -66,6 +66,8 @@ pipeline {
                     // oneass.lookup (itemName,  vaultName=null, sectionName=null, fieldName = 'password') {
                     def examplePassword = onepass.lookup('my_test_example') // should give password
                     def exampleUsername = onepass.lookup('my_test_example', theVault, null, 'username')
+
+                    onepass.clearCache()
                     def exampleFieldValue = onepass.lookup('my_test_example', theVault, "my_section", 'my_field')
 
                     // lookup all the credentials
