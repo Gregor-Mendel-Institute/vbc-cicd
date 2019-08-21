@@ -63,9 +63,9 @@ pipeline {
                     echo "jenk onepass lookup default"
                     def examplePassword = onepass.lookup('my_test_example') // should give password
                     echo "jenk onepass lookup default field"
-                    def exampleUsername = onepass.lookup(itemName: 'my_test_example', fieldName: 'username')
+                    def exampleUsername = onepass.lookup(itemName: 'my_test_example', vaultName: null, sectionName: null, fieldName: 'username')
                     echo "jenk onepass lookup section field"
-                    def exampleFieldValue = onepass.lookup(itemName: 'my_test_example', sectionName: "my_section", fieldName: 'my_field')
+                    def exampleFieldValue = onepass.lookup(itemName: 'my_test_example', vaultName: null, sectionName: "my_section", fieldName: 'my_field')
 
 
                     // lookup all the credentials
