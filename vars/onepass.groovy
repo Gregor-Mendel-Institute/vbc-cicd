@@ -52,6 +52,8 @@
 }
  */
 
+import groovy.transform.Memoized
+
 def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey) {
     echo "signing in to 1Password using credentials: ${credentialsUsernamePassword} and ${credentialsDomainMasterKey}"
 
