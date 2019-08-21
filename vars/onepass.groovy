@@ -84,7 +84,7 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
     return onepass_token
 }
 
-
+@NonCPS
 def lookup(String itemName, String vault=null, String section='default', String field = 'password') {
 
     Map raw = raw(itemName, vault)
@@ -92,7 +92,8 @@ def lookup(String itemName, String vault=null, String section='default', String 
 }
 
 // groovy method caching
-@Memoized
+@Memoized(maxCacheSize=100)
+@NonCPS
 def raw(String itemName, String vault = null) {
 
     //def cached_item = itemCache.get(itemName)
