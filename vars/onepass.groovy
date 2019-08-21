@@ -132,6 +132,7 @@ def raw(String itemName, String vault = null) {
     def vault_param = vault ? "--vault=${vault}" : ""
     def item_raw = sh label: "onepass", script: "op get item --session=${onePassToken} ${itemName} ${vault_param}", returnStdout: true
 
+    echo "raw item data: ${item_raw}"
     def item_data = readJson text: "${item_raw}"
 
 //    itemCache[itemName] = item_data
