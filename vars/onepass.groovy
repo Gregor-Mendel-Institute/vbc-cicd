@@ -78,12 +78,13 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
 
         // FIXME remove it, this is leaking, was: for debugging
         // echo "got the token: ${onepass_token}"
-
-        if (onePassToken == null) {
-            error('failed to retrieve 1Password session token')
-        }
     }
 
+    if (onePassToken == null) {
+        error('failed to retrieve 1Password session token')
+    }
+
+    onePassToken = onePassToken.trim()
     return onePassToken
 }
 
@@ -131,7 +132,7 @@ def raw(String itemName, String vault = null) {
     def vault_param = vault ? "--vault=${vault}" : ""
     def item_raw = sh label: "onepass", script: "op get item --session=${onePassToken} ${itemName} ${vault_param}", returnStdout: true
 
-    Map item_data = readJson text: item_raw
+    Map item_data = readJson text: "${item_raw}"
 
 //    itemCache[itemName] = item_data
     return item_data
