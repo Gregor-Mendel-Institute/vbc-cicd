@@ -92,8 +92,8 @@ def lookup(String itemName, String vault=null, String section='default', String 
 }
 
 // groovy method caching
-@Memoized(maxCacheSize=100)
 @NonCPS
+@Memoized(maxCacheSize=100)
 def raw(String itemName, String vault = null) {
 
     //def cached_item = itemCache.get(itemName)
