@@ -54,6 +54,8 @@
 
 import groovy.transform.Memoized
 
+Map itemCache = [:]
+
 def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey) {
     echo "signing in to 1Password using credentials: ${credentialsUsernamePassword} and ${credentialsDomainMasterKey}"
 
@@ -84,7 +86,6 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
     return onepass_token
 }
 
-@NonCPS
 def lookup(String itemName, String vault=null, String section='default', String field = 'password') {
 
     Map raw = raw(itemName, vault)
@@ -92,20 +93,19 @@ def lookup(String itemName, String vault=null, String section='default', String 
 }
 
 // groovy method caching
-@NonCPS
-@Memoized(maxCacheSize=100)
+//@Memoized(maxCacheSize=100)
 def raw(String itemName, String vault = null) {
 
-    //def cached_item = itemCache.get(itemName)
-    //if (cached_item)
-    //    return cached_item
+    def cached_item = itemCache.get(itemName)
+    if (cached_item)
+        return cached_item
 
     def vault_param = vault ? "--vault=${vault}" : ""
     def item_raw = sh label: "onepass", script: "op get item ${itemName} ${vault_param}", returnStdout: true
 
     Map item_data = readJson text: item_raw
 
-    //itemCache[itemName] = item_data
+    itemCache[itemName] = item_data
     return item_data
 }
 
