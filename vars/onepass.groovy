@@ -95,7 +95,7 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
     return onePassToken
 }
 
-def lookup(String itemName, String vaultName=null, String sectionName=null, String fieldName = 'password') {
+def lookup(itemName, vaultName=null, sectionName=null, fieldName = 'password') {
 
 
     Map raw = raw(itemName, vaultName)
