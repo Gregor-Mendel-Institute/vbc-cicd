@@ -66,7 +66,7 @@ pipeline {
                     // oneass.lookup (itemName,  vaultName=null, sectionName=null, fieldName = 'password') {
                     def examplePassword = onepass.lookup('my_test_example') // should give password
                     def exampleUsername = onepass.lookup('my_test_example', theVault, null, 'username')
-                    def exampleFieldValue = onepass.lookup('my_test_example', theVault, "my_section", fieldName: 'my_field')
+                    def exampleFieldValue = onepass.lookup('my_test_example', theVault, "my_section", 'my_field')
 
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
