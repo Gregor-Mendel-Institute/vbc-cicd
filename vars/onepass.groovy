@@ -54,7 +54,11 @@
 
 import groovy.transform.Memoized
 
+@groovy.transform.Field
 Map itemCache = [:]
+
+@groovy.transform.Field
+def onePassToken = null
 
 def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey) {
     echo "signing in to 1Password using credentials: ${credentialsUsernamePassword} and ${credentialsDomainMasterKey}"
@@ -64,26 +68,23 @@ def signin(String credentialsUsernamePassword, String credentialsDomainMasterKey
         usernamePassword(credentialsId: credentialsDomainMasterKey, usernameVariable: "OP_DOMAIN", passwordVariable: "OP_MASTER_KEY")
     ]
 
-    def onepass_token = null
-    withCredentials(onePassCredentials) {
-        echo "onepass env:"
-        // sh "env"
-        echo "will sign in to domain: ${env.OP_DOMAIN}"
 
+    withCredentials(onePassCredentials) {
+        echo "will sign in to domain: ${env.OP_DOMAIN}"
         // usage: op signin <signinaddress> <emailaddress> <secretkey> [--output=raw]
         def signin_script = 'echo $OP_PASSWORD | op signin $OP_DOMAIN $OP_USERNAME $OP_MASTER_KEY --output=raw'
 
-        onepass_token = sh label: "onepass", script: signin_script, returnStdout: true
+        onePassToken = sh label: "onepass", script: signin_script, returnStdout: true
 
         // FIXME remove it, this is leaking, was: for debugging
         // echo "got the token: ${onepass_token}"
 
-        if (onepass_token == null) {
+        if (onePassToken == null) {
             error('failed to retrieve 1Password session token')
         }
     }
 
-    return onepass_token
+    return onePassToken
 }
 
 def lookup(String itemName, String vaultName=null, String sectionName=null, String fieldName = 'password') {
@@ -127,7 +128,7 @@ def raw(String itemName, String vault = null) {
 //        return cached_item
 
     def vault_param = vault ? "--vault=${vault}" : ""
-    def item_raw = sh label: "onepass", script: "op get item ${itemName} ${vault_param}", returnStdout: true
+    def item_raw = sh label: "onepass", script: "op get item --session=${onePassToken} ${itemName} ${vault_param}", returnStdout: true
 
     Map item_data = readJson text: item_raw
 
