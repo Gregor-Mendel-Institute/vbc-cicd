@@ -58,9 +58,13 @@ pipeline {
                     //def discovery_data = readYaml file: "default_discovery.yml"
                     def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
 
+                    echo "jenk onepass signin"
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
+                    echo "jenk onepass lookup default"
                     def examplePassword = onepass.lookup('my_test_example') // should give password
+                    echo "jenk onepass lookup default field"
                     def exampleUsername = onepass.lookup(itemName: 'my_test_example', fieldName: 'username')
+                    echo "jenk onepass lookup section field"
                     def exampleFieldValue = onepass.lookup(itemName: 'my_test_example', sectionName: "my_section", fieldName: 'my_field')
 
 
