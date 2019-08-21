@@ -122,16 +122,16 @@ def lookup(String itemName, String vaultName=null, String sectionName=null, Stri
 //@Memoized(maxCacheSize=100)
 def raw(String itemName, String vault = null) {
 
-    def cached_item = itemCache.get(itemName)
-    if (cached_item)
-        return cached_item
+//    def cached_item = itemCache.get(itemName)
+//    if (cached_item)
+//        return cached_item
 
     def vault_param = vault ? "--vault=${vault}" : ""
     def item_raw = sh label: "onepass", script: "op get item ${itemName} ${vault_param}", returnStdout: true
 
     Map item_data = readJson text: item_raw
 
-    itemCache[itemName] = item_data
+//    itemCache[itemName] = item_data
     return item_data
 }
 
