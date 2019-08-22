@@ -43,7 +43,7 @@ pipeline {
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'baseline']],
                         submoduleCfg: [],
-                        userRemoteConfigs: [[credentialsId: 'svc-bitbucket-access-ssh', url: 'ssh://git@bitbucket.imp.ac.at:7991/iab/linux-baseline.git']]
+                        userRemoteConfigs: [[credentialsId: 'seed-git-ssh', url: 'ssh://git@bitbucket.imp.ac.at:7991/iab/linux-baseline.git']]
                     ])
                 }
             }
