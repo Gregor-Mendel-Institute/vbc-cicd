@@ -14,4 +14,9 @@ class SingleRepoProvider extends RepoProvider {
     Closure repoTriggers() {
         return
     }
+
+    @Override
+    Closure configure() {
+        return { }
+    }
 }

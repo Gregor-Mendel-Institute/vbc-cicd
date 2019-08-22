@@ -123,6 +123,28 @@ class JobFactory {
         }
     }
 
+    Closure configure() {
+        // to job configure freeform
+        return {
+
+            // setup build strategies: avoid build storm on tags, don't build after discovery
+            def buildStrategies = it / buildStrategies
+            buildStrategies << 'jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing' {
+            }
+            buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
+            }
+
+            if (this.buildTags) {
+                // automatically build tags newer than 7 days (604800000 millis)
+                buildStrategies << 'jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl' {
+                    atLeastMillis(1)
+                    atMostMillis(604800000)
+                }
+            }
+
+        }
+    }
+
     // build up credentials set for the processed Item (Job / folder)
     Closure itemCredentials() {
         List item_credentials = this.raw.jenkins.credentials
@@ -189,6 +211,8 @@ class JobFactory {
         orgFolder.triggers this.repoProvider.repoTriggers()
         orgFolder.organizations this.repoProvider.asOrganizations()
         orgFolder.properties this.itemCredentials()
+        orgFolder.configure this.configure()
+        orgFolder.configure this.repoProvider.configure()
 
 
         // orgFolder.with(this.itemProperties())

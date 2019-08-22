@@ -27,4 +27,9 @@ class GithubRepoProvider extends RepoProvider {
             }
         }
     }
+
+    @Override
+    Closure configure() {
+        return null
+    }
 }

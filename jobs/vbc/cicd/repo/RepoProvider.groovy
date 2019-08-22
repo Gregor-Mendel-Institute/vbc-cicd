@@ -23,6 +23,7 @@ abstract class RepoProvider {
 
     abstract Closure getScmDefinition()
     abstract Closure repoTriggers()
+    abstract Closure configure()
 
     // by default do nothing, i.e. empty closure
     Closure asOrganizations() {

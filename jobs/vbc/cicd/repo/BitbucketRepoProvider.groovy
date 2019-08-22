@@ -23,8 +23,6 @@ class BitbucketRepoProvider extends RepoProvider {
 
                 // credentials for API access
                 credentialsId(this.credentials)
-                // redentials for ssh checkout
-                checkoutCredentialsId(this.checkoutCredentials)
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
@@ -48,8 +46,49 @@ class BitbucketRepoProvider extends RepoProvider {
                 // rescan every 15 mins
                 interval("60")
             }
-            //periodic(60) // DEPRECATED
             bitbucketPush()
         }
     }
+
+    @Override
+    Closure configure() {
+        return { it ->
+            def scm_traits = it / navigators / 'com.cloudbees.jenkins.plugins.bitbucket.BitbucketSCMNavigator' / traits
+
+            // discover all branches
+            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.BranchDiscoveryTrait' {
+                strategyId('3')
+            }
+
+            // discover PRs in the same repo
+            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.OriginPullRequestDiscoveryTrait' {
+
+                // try both: the just the cloned branch AND the cloned branch merged on top of the destination branch of PR
+                strategyId('3')
+            }
+
+            // discover PRs in cloned repos
+            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait' {
+
+                // try both: the just the cloned branch AND the cloned branch merged on top of the destination branch of PR
+                strategyId('3')
+
+                // trust changed Jenkinsfiles from Everyone (from clones in other Accounts), if not trusted will require+use Jenkinsfile in origin
+                trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
+            }
+
+            // discover tags, if we release versions
+            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.TagDiscoveryTrait' {
+            }
+
+            if (this.checkoutCredentials) {
+                scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
+                    // use ssh with these credentials for the actual checkout
+                    credentialsId(this.checkoutCredentials)
+                }
+            }
+
+        }
+    }
+
 }
