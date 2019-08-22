@@ -144,6 +144,11 @@ class JobFactory {
             displayName(this.name)
             description(this.description)
 
+            // disable job if global disable flag is set
+            if (env.GLOBAL_JOB_DISABLE && env.GLOBAL_JOB_DISABLE == "true") {
+                disabled()
+            }
+
             authorization {
                 for (perm in this.permissionSets) {
                     permissions(perm.key, perm.value)

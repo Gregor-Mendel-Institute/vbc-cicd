@@ -10,7 +10,7 @@ for (Map org in discoverOrgs) {
 
     // queue org folder job right away to discover child projects
     // Org folder is a computed folder, not job i.e. need to trigger by name
-    println "queuing discovery job for ${orgFolder.name}"
+    // println "queuing discovery job for ${orgFolder.name}"
     queue(orgFolder.name)
 }
 //out << "done creating."
