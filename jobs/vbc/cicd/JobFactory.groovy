@@ -211,7 +211,9 @@ class JobFactory {
         orgFolder.triggers this.repoProvider.repoTriggers()
         orgFolder.organizations this.repoProvider.asOrganizations()
         orgFolder.properties this.itemCredentials()
-        orgFolder.configure this.configure().with(this.repoProvider.configure())
+
+        orgFolder.configure this.repoProvider.configure()
+        orgFolder.configure this.configure()
         //orgFolder.configure this.repoProvider.configure()
 
 
