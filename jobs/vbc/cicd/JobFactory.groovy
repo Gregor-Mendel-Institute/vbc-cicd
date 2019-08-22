@@ -70,6 +70,8 @@ class JobFactory {
     private Boolean buildTags = false
     private String folder = null
 
+    boolean globalJobDisabled = false
+
     private Map<String,List<String>> permissionSets = [:]
     private RepoProvider repoProvider = null
 
@@ -77,7 +79,7 @@ class JobFactory {
     DslFactory _dslFactory = null
 
     public JobFactory(dslFactory, Map org, boolean disabled = false) {
-
+        this.globalJobDisabled = disabled
         this._dslFactory = dslFactory
         this.raw = org
 
@@ -145,7 +147,7 @@ class JobFactory {
             description(this.description)
 
             // disable job if global disable flag is set
-            if (disabled) {
+            if (this.globalJobDisabled) {
                 disabled()
             }
 

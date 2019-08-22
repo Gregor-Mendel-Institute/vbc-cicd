@@ -101,7 +101,7 @@ pipeline {
                            //additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
                                discoverOrgs: seed_orgs,
-                               globalJobDisabled: env.GLOBAL_JOB_DISABLE
+                               globalJobDisabled: (env.GLOBAL_JOB_DISABLE == 'true')
                            ]
                  }
             }
