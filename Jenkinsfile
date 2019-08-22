@@ -58,11 +58,9 @@ pipeline {
                     //def discovery_data = readYaml file: "default_discovery.yml"
                     def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
 
-                    echo "jenk onepass signin"
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
 
                     def theVault = 'sandbox'
-
                     // oneass.lookup (itemName,  vaultName=null, sectionName=null, fieldName = 'password') {
                     def examplePassword = onepass.lookup('my_test_example') // should give password
                     def exampleUsername = onepass.lookup('my_test_example', theVault, null, 'username')
@@ -72,6 +70,7 @@ pipeline {
 
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
+                    echo "processing seed orgs: ${seed_orgs}"
                     for (org in seed_orgs) {
                         echo "fetching credentials specific to ${org.owner}"
                         for (creds_in_domain in org.jenkins.credentials) {

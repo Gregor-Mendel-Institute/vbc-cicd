@@ -22,7 +22,9 @@ class BitbucketRepoProvider extends RepoProvider {
                 serverUrl(this.url)
 
                 // credentials for API access
-                credentialsId(this.credentialsId)
+                credentialsId(this.credentials)
+                // redentials for ssh checkout
+                checkoutCredentialsId(this.checkoutCredentials)
 
                 // this one is deprecated
                 //autoRegisterHooks(true)

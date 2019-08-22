@@ -3,8 +3,8 @@ package vbc.cicd.repo
 abstract class RepoProvider {
 
     String url = null
-    String credentialsId = null
-    String checkoutCredentialsId = null
+    String credentials = null
+    String checkoutCredentials = null
 
     String includes = ""
     String excludes = ""
@@ -13,8 +13,8 @@ abstract class RepoProvider {
         Map provider = org.jenkins.provider
 
         this.url = provider.url
-        this.credentialsId = provider.credentialsId
-        this.checkoutCredentialsId = provider.get('checkoutCredentialsId', null)
+        this.credentials = provider.credentials
+        this.checkoutCredentials = provider.get('checkoutCredentials', null)
 
         this.includes = provider.get("includes", "")
         this.excludes = provider.get("excludes", "")

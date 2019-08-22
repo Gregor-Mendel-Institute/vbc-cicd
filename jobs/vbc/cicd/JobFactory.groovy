@@ -121,53 +121,6 @@ class JobFactory {
         }
     }
 
-
-    Closure generateDomainCredentials(Map org_creds) {
-        // NULL is the name of the global domain: https://github.com/jenkinsci/credentials-plugin/blob/master/src/main/java/com/cloudbees/plugins/credentials/domains/Domain.java#L52
-        Map cred_domain = org_creds.get('domain', [:])
-
-        return {
-            domain {
-                name(cred_domain.get('name'))
-                description(cred_domain.get('description'))
-                specifications {
-                    hostnameSpecification {
-                        // A comma separated whitelist of hostnames.
-                        includes(cred_domain.get('includes', ""))
-                        // A comma separated blacklist of hostnames.
-                        excludes(cred_domain.get('excludes', ""))
-                    }
-                }
-            }
-
-            for (Map cc in org_creds.credentials) {
-                String cc_scope = cc.get('scope', 'GLOBAL')
-                usernamePasswordCredentialsImpl {
-                    // Determines where this credential can be used.
-                    scope(cc_scope)
-                    // An internal unique ID by which these credentials are identified from jobs and other configuration.
-                    id(cc.id)
-                    // An optional description to help tell similar credentials apart.
-                    description(cc.get('description', ''))
-                    // The username.
-                    username(cc.username)
-                    // The password. FIXME this should be a placeholders, as needs updating from 1Pass??
-                    password(cc.get('password', 'undefined-testing-value').toString())
-                }
-            }
-
-            /*
-            credentials {
-                //basicSSHUserPrivateKey {}
-                //certificateCredentialsImpl {}
-                for (cc in cred_list) {
-                }
-            }
-            */
-        }
-    }
-
-
     // build up credentials set for the processed Item (Job / folder)
     Closure itemCredentials() {
         List item_credentials = this.raw.jenkins.credentials
