@@ -60,14 +60,6 @@ pipeline {
 
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
 
-                    def theVault = 'sandbox'
-                    // oneass.lookup (itemName,  vaultName=null, sectionName=null, fieldName = 'password') {
-                    def examplePassword = onepass.lookup('my_test_example') // should give password
-                    def exampleUsername = onepass.lookup('my_test_example', theVault, null, 'username')
-
-                    onepass.clearCache()
-                    def exampleFieldValue = onepass.lookup('my_test_example', theVault, "my_section", 'my_field')
-
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
                     // echo "processing seed orgs: ${seed_orgs}"
@@ -85,10 +77,11 @@ pipeline {
 
                           for (cc in creds_in_domain.credentials) {
                             echo "looking for ${cc.id}"
-                                if ('1password' in cc) {
-                                    for (op_lookup in cc.1password) {
+                                if ('onepass' in cc) {
+                                    for (op_lookup in cc.onepass) {
                                         // dynamically lookup and assign
                                         cc."${op_lookup.target}" = onepass.lookup(op_lookup.item, op_lookup.vault, op_lookup.section, op_lookup.field)
+                                    }
                                 }
                           }
                         }
