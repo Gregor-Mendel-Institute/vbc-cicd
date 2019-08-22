@@ -21,6 +21,27 @@ class GithubRepoProvider extends RepoProvider {
                 apiUri(this.url)
                 credentialsId(this.credentials)
                 repoOwner(this.owner)
+
+                traits {
+                    if (this.checkoutCredentials) {
+                        gitHubSshCheckout {
+                            // Credentials used to check out sources.
+                            credentialsId(this.checkoutCredentials)
+                        }
+                    }
+                    gitHubBranchDiscovery {
+                        // Determines which branches are discovered.
+                        strategyId(1)
+                    }
+                    gitHubTagDiscovery()
+
+                    sourceWildcardFilter {
+                        // Space-separated list of project name patterns to consider.
+                        includes(this.includes)
+                        // Space-separated list of project name patterns to ignore even if matched by the includes list.
+                        excludes(this.excludes)
+                    }
+                }
             }
 
         }
