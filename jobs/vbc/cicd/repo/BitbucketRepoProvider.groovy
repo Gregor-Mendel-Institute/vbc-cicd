@@ -57,7 +57,11 @@ class BitbucketRepoProvider extends RepoProvider {
 
             // discover all branches
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.BranchDiscoveryTrait' {
-                strategyId('3')
+                // 1 ... exclude branches that are also a PR
+                // 2 ... only branches that are a PR
+                // 3 ... both
+
+                strategyId('1')
             }
 
             // discover PRs in the same repo
@@ -73,7 +77,8 @@ class BitbucketRepoProvider extends RepoProvider {
                 // try both: the just the cloned branch AND the cloned branch merged on top of the destination branch of PR
                 strategyId('3')
 
-                // trust changed Jenkinsfiles from Everyone (from clones in other Accounts), if not trusted will require+use Jenkinsfile in origin
+                // trust changed Jenkinsfiles from Everyone (from clones in other Accounts),
+                // if not trusted will require + use Jenkinsfile in origin, i.e. when using '$TrustNobody'
                 trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
             }
 
@@ -81,6 +86,7 @@ class BitbucketRepoProvider extends RepoProvider {
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.TagDiscoveryTrait' {
             }
 
+            // use specific checkout credentials if they are configured
             if (this.checkoutCredentials) {
                 scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                     // use ssh with these credentials for the actual checkout
