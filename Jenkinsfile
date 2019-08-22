@@ -70,7 +70,7 @@ pipeline {
 
                     // lookup all the credentials
                     def seed_orgs = discovery_data.jenkins_seed_orgs
-                    echo "processing seed orgs: ${seed_orgs}"
+                    // echo "processing seed orgs: ${seed_orgs}"
                     for (org in seed_orgs) {
                         echo "fetching credentials specific to ${org.owner}"
                         for (creds_in_domain in org.jenkins.credentials) {

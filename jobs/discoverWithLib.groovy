@@ -9,7 +9,9 @@ for (Map org in discoverOrgs) {
     OrganizationFolderJob orgFolder = factory.makeOrganizationFolder()
 
     // queue org folder job right away to discover child projects
-    queue(orgFolder)
+    // Org folder is a computed folder, not job i.e. need to trigger by name
+    println "queuing discovery job for ${orgFolder.name}"
+    queue(orgFolder.name)
 }
 //out << "done creating."
 
