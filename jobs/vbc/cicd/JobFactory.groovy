@@ -178,13 +178,15 @@ class JobFactory {
         }
 
         // setup job triggers if not globally disabled
+        /*
         if (!this.globalJobDisabled) {
             orgFolder.triggers this.repoProvider.repoTriggers()
         }
         else {
             // FIXME log the fact we're not enabling triggers
         }
-
+        */
+        orgFolder.triggers this.repoProvider.repoTriggers()
         orgFolder.organizations this.repoProvider.asOrganizations()
         orgFolder.properties this.itemCredentials()
 
