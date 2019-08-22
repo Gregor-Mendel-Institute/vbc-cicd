@@ -167,9 +167,24 @@ class JobFactory {
                     scriptPath("Jenkinsfile")
                 }
             }
+
+            orphanedItemStrategy {
+                defaultOrphanedItemStrategy {
+                    pruneDeadBranches(true)
+                    daysToKeepStr("90")
+                    numToKeepStr("30")
+                }
+            }
         }
 
-        orgFolder.triggers this.repoProvider.repoTriggers()
+        // setup job triggers if not globally disabled
+        if (!this.globalJobDisabled) {
+            orgFolder.triggers this.repoProvider.repoTriggers()
+        }
+        else {
+            // FIXME log the fact we're not enabling triggers
+        }
+
         orgFolder.organizations this.repoProvider.asOrganizations()
         orgFolder.properties this.itemCredentials()
 
