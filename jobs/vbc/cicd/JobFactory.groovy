@@ -190,12 +190,15 @@ class JobFactory {
                 }
             }
 
+            // here orphaned items are repositories in the organisations, not jobs
             orphanedItemStrategy {
+                /*
                 defaultOrphanedItemStrategy {
                     pruneDeadBranches(true)
                     daysToKeepStr("90")
                     numToKeepStr("30")
                 }
+                */
             }
         }
 
