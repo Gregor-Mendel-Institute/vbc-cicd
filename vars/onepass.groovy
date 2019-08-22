@@ -103,7 +103,7 @@ def lookup(String itemName, String vaultName=null, String sectionName=null, Stri
     String lookupValue = null
 
     if (sectionName) {
-        for (section in raw.sections) {
+        for (section in raw.details.sections) {
             if (section.title == sectionName) {
                 for (field in section.fields) {
                     if (field.t == fieldName) {

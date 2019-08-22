@@ -131,8 +131,10 @@ class JobFactory {
             def buildStrategies = it / buildStrategies
             buildStrategies << 'jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing' {
             }
+            /* this invalidates above skip build on first indexing
             buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
             }
+            */
 
             if (this.buildTags) {
                 // automatically build tags newer than 7 days (604800000 millis)
