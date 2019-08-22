@@ -85,7 +85,11 @@ pipeline {
 
                           for (cc in creds_in_domain.credentials) {
                             echo "looking for ${cc.id}"
-
+                                if ('1password' in cc) {
+                                    for (op_lookup in cc.1password) {
+                                        // dynamically lookup and assign
+                                        cc."${op_lookup.target}" = onepass.lookup(op_lookup.item, op_lookup.vault, op_lookup.section, op_lookup.field)
+                                }
                           }
                         }
                     }
