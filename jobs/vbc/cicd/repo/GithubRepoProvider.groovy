@@ -35,7 +35,8 @@ class GithubRepoProvider extends RepoProvider {
                 // rescan every 15 mins
                 interval("60")
             }
-            githubPush()
+            // for the jobs underneath?
+            // githubPush()
         }
     }
 
