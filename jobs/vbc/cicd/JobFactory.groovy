@@ -76,7 +76,7 @@ class JobFactory {
     private Map raw = null
     DslFactory _dslFactory = null
 
-    public JobFactory(dslFactory, Map org) {
+    public JobFactory(dslFactory, Map org, boolean disabled = false) {
 
         this._dslFactory = dslFactory
         this.raw = org
@@ -145,7 +145,7 @@ class JobFactory {
             description(this.description)
 
             // disable job if global disable flag is set
-            if (env.GLOBAL_JOB_DISABLE && env.GLOBAL_JOB_DISABLE == "true") {
+            if (disabled) {
                 disabled()
             }
 

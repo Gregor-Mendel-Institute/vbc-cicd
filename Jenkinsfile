@@ -100,7 +100,8 @@ pipeline {
                            targets: 'jobs/discoverWithLib.groovy',
                            //additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
-                               discoverOrgs: seed_orgs
+                               discoverOrgs: seed_orgs,
+                               globalJobDisabled: env.GLOBAL_JOB_DISABLE
                            ]
                  }
             }
