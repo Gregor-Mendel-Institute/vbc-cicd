@@ -44,7 +44,7 @@ class BitbucketRepoProvider extends RepoProvider {
             periodicFolderTrigger {
                 // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
                 // rescan every 15 mins
-                interval("60")
+                interval("${this.scanIntervalMinutes}")
             }
             bitbucketPush()
         }

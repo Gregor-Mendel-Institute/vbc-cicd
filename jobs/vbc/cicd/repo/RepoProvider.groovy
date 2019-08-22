@@ -9,6 +9,8 @@ abstract class RepoProvider {
     String includes = ""
     String excludes = ""
 
+    int scanIntervalMinutes = 60
+
     RepoProvider(Map org) {
         Map provider = org.jenkins.provider
 

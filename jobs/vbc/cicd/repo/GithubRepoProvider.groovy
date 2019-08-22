@@ -7,6 +7,8 @@ class GithubRepoProvider extends RepoProvider {
     def GithubRepoProvider(Map org) {
         super(org)
         this.owner = org.owner
+        // github quota should have some more time
+        this.scanIntervalMinutes = 120
     }
 
     @Override
@@ -54,7 +56,7 @@ class GithubRepoProvider extends RepoProvider {
             periodicFolderTrigger {
                 // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
                 // rescan every 15 mins
-                interval("60")
+                interval("${this.scanIntervalMinutes}")
             }
             // for the jobs underneath?
             // githubPush()
