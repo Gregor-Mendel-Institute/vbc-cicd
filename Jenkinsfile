@@ -110,6 +110,10 @@ pipeline {
             // notify build results, see https://jenkins.io/blog/2016/07/18/pipline-notifications/
             // notifyBuild(currentBuild.result)
             echo "this will always show up"
+
+            echo "publish build result to Artifactory"
+            rtPublishBuildInfo serverId: "artifactoryVBC"
+
         }
         changed {
             echo "build changed"

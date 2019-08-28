@@ -143,7 +143,7 @@ def raw(String itemName, String vault = null) {
     def item_data = null
     // avoid exposing the token in job logs
     withEnv(["OP_TOKEN=${onePassToken}"]) {
-        def item_raw = sh label: "onepass", script: 'echo $OP_TOKEN | ' + "op get item ${itemName} ${vault_param}", returnStdout: true
+        def item_raw = sh label: "onepass", script: 'echo $OP_TOKEN | ' + "op get item '${itemName}' ${vault_param}", returnStdout: true
         item_data = readJSON text: item_raw
     }
     //echo "raw item data: ${item_raw}"

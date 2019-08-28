@@ -3,6 +3,9 @@
 
 def call(Map currentBuild, Map params = [:]) {
 
+    echo "publish buildinfo to artifactory"
+    rtPublishBuildInfo serverId: "artifactoryVBC"
+
     echo "sending build notifications"
     echo "NOTIFICATION TIME"
     echo "got build: ${currentBuild}"

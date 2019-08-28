@@ -171,9 +171,10 @@ class JobFactory {
             description(this.description)
 
             // disable job if global disable flag is set
-            if (this.globalJobDisabled) {
-                disabled()
-            }
+            // fixme cannot call this on or folder jobs
+            //if (this.globalJobDisabled) {
+                // disabled()
+            //}
 
             authorization {
                 for (perm in this.permissionSets) {
