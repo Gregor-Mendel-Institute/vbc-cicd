@@ -112,6 +112,7 @@ pipeline {
             echo "this will always show up"
 
             echo "publish build result to Artifactory"
+            rtBuildInfo maxBuilds: 30, captureEnv: true
             rtPublishBuildInfo serverId: "artifactoryVBC"
 
         }
