@@ -35,6 +35,16 @@ class GithubRepoProvider extends RepoProvider {
                         // Determines which branches are discovered.
                         strategyId(1)
                     }
+                    /** not quite ready
+                    gitHubForkDiscovery {
+                        strategyId(1)
+                        gitHubTrustContributors()
+                    }
+                    originPullRequestDiscoveryTrait {
+                        strategyId(1)
+                    }
+                    */
+
                     gitHubTagDiscovery()
 
                     sourceWildcardFilter {
@@ -66,8 +76,36 @@ class GithubRepoProvider extends RepoProvider {
 
     @Override
     Closure configure() {
-        return {
+        /*
+        <org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
+          <strategyId>1</strategyId>
+        </org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
 
+        <org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait>
+          <strategyId>1</strategyId>
+          <trust class="org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait$TrustContributors"/>
+        </org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait>
+
+        <org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
+          <strategyId>1</strategyId>
+        </org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
+
+        <org.jenkinsci.plugins.github__branch__source.TagDiscoveryTrait/>
+
+         */
+        return { it ->
+            def traits = it / navigators /  'org.jenkinsci.plugins.github__branch__source.GitHubSCMNavigator' / traits
+            traits << 'org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait' {
+                strategyId(1)
+            }
+            traits << 'org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait' {
+                strategyId(1)
+                trust(class: 'org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait$TrustContributors')
+                // see also https://github.com/jenkinsci/github-branch-source-plugin/blob/github-branch-source-2.5.6/src/main/java/org/jenkinsci/plugins/github_branch_source/ForkPullRequestDiscoveryTrait.java#L301
+                //gitHubTrustNobody()
+                // gitHubTrustPermissions() // users with r/w or admin
+                //gitHubTrustContributors() // any collaborators (also with r/o acces
+            }
         }
     }
 }
