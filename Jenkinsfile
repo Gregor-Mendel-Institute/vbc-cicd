@@ -19,6 +19,15 @@ pipeline {
     //parameters {
         //fileParam("pipelines.yml", "Pipeline definition fila (yaml)")
     //}
+    /* not setting parameters here will avoid overwriting them from initial job DSL seed setup
+    parameters {
+        // see https://plugins.jenkins.io/git-parameter
+        // these parameters only effect the repo/location/version of the discovery config data
+        string name: "SEED_JOB_CONFIG_REPO_URL", defaultValue: "${env.SEED_JOB_CONFIG_REPO_URL}", description: 'repo to retrieve discovery info from', trim: true
+        gitParameter name: 'SEED_JOB_CONFIG_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_CONFIG_VERSION}", type: 'PT_BRANCH_TAG', description: 'which config (in host_vars) from linux-baseline repo', useRepository: "${env.SEED_JOB_CONFIG_REPO_URL}", selectedValue: "DEFAULT"
+        string name: 'SEED_JOB_CONFIG_FILE', defaultValue: "${env.SEED_JOB_CONFIG_FILE}", description: 'file to read job discovery from', trim: true
+    }
+    */
 
     stages {
         // for display purposes
@@ -35,15 +44,15 @@ pipeline {
                     scmVars = checkout scm
                     // checkout baseline for seed org info
                     // FIXME ref should be configurable, i.e. branch or tag
-                    // TODO investigate resolveScm(source: git('https://example.com/example.git'), targets: [BRANCH_NAME,'master']
+                    // TODO investigate resolveScm(source: git('https://example.com/example.git'), targets: [BRANCH_NAME, 'master']
                     // tries to find the same ref as main scm, then falls back to master
                     checkout([
                         $class: 'GitSCM',
-                        branches: [[name: 'refs/heads/jenkins_server']],
+                        branches: [[name: "${params.SEED_JOB_CONFIG_VERSION}"]],
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'baseline']],
                         submoduleCfg: [],
-                        userRemoteConfigs: [[credentialsId: 'seed-git-ssh', url: 'ssh://git@bitbucket.imp.ac.at:7991/iab/linux-baseline.git']]
+                        userRemoteConfigs: [[credentialsId: "${env.SEED_JOB_CREDENTIALS_ID}", url: "${params.SEED_JOB_CONFIG_REPO_URL}"]]
                     ])
                 }
             }
@@ -54,10 +63,8 @@ pipeline {
                 script {
                     echo "my git setup: ${scmVars}"
 
-                    // Bitbucket organizations to scan for roles
-                    //def discovery_data = readYaml file: "default_discovery.yml"
-                    def discovery_data = readYaml file: "baseline/host_vars/test-jenkins-1.vbc.ac.at"
-
+                    // organizations to scan
+                    def discovery_data = readYaml file: "${params.SEED_JOB_CONFIG_FILE}"
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
 
                     // lookup all the credentials
