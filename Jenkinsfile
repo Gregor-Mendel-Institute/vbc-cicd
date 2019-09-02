@@ -72,7 +72,7 @@ pipeline {
                     // echo "processing seed orgs: ${seed_orgs}"
                     for (org in seed_orgs) {
                         echo "fetching credentials specific to ${org.owner}"
-                        for (creds_in_domain in org.jenkins.credentials) {
+                        for (creds_in_domain in org.jenkins.get('credentials', [])) {
 
                           def domain = creds_in_domain.get('domain')
                           if (domain != null) {
