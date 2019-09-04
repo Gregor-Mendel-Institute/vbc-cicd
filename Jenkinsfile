@@ -19,7 +19,7 @@ pipeline {
     //parameters {
         //fileParam("pipelines.yml", "Pipeline definition fila (yaml)")
     //}
-    /* not setting parameters here will avoid overwriting them from initial job DSL seed setup
+    // not setting parameters here will avoid overwriting them from initial job DSL seed setup
     parameters {
         // see https://plugins.jenkins.io/git-parameter
         // these parameters only effect the repo/location/version of the discovery config data
@@ -27,7 +27,6 @@ pipeline {
         gitParameter name: 'SEED_JOB_CONFIG_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_CONFIG_VERSION}", type: 'PT_BRANCH_TAG', description: 'which config (in host_vars) from linux-baseline repo', useRepository: "${env.SEED_JOB_CONFIG_REPO_URL}", selectedValue: "DEFAULT"
         string name: 'SEED_JOB_CONFIG_FILE', defaultValue: "${env.SEED_JOB_CONFIG_FILE}", description: 'file to read job discovery from', trim: true
     }
-    */
 
     stages {
         // for display purposes
@@ -50,7 +49,7 @@ pipeline {
                         $class: 'GitSCM',
                         branches: [[name: "${params.SEED_JOB_CONFIG_VERSION}"]],
                         doGenerateSubmoduleConfigurations: false,
-                        extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'baseline']],
+                        extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'config']],
                         submoduleCfg: [],
                         userRemoteConfigs: [[credentialsId: "${env.SEED_JOB_CREDENTIALS_ID}", url: "${params.SEED_JOB_CONFIG_REPO_URL}"]]
                     ])
@@ -64,7 +63,7 @@ pipeline {
                     echo "my git setup: ${scmVars}"
 
                     // organizations to scan
-                    def discovery_data = readYaml file: "${params.SEED_JOB_CONFIG_FILE}"
+                    def discovery_data = readYaml file: "${env.SEED_JOB_CONFIG_FILE}"
                     onepass.signin('svc-1password-user', 'svc-1password-domain')
 
                     // lookup all the credentials
