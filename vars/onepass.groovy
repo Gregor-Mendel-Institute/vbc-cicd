@@ -122,8 +122,8 @@ def lookup(String itemName, String vaultName=null, String sectionName=null, Stri
             }
         }
     }
-
-    echo "lookup value: ${lookupValue}"
+    //WARNING: this would spill all the secrets
+    // echo "lookup value: ${lookupValue}"
     return lookupValue
 }
 

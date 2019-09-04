@@ -5,10 +5,11 @@ class SSHPrivateKeyCredentials extends Credentials {
     String privatekey
     String password
 
-    SSHPrivateKeyCredentials(String id, String description, String scope, String username, String secretkey, String password = null) {
+    SSHPrivateKeyCredentials(String id, String description, String scope, String username, String privatekey, String password = null) {
         super(id, description, scope)
         this.username = username
-        this.privatekey = secretkey
+        //FIXME private key from 1pass needs sanitation
+        this.privatekey = privatekey.replace(' PRIVATE KEY ', 'PRIVATEKEY').replace(' ', '\n').replace('PRIVATEKEY', ' PRIVATE KEY ')
         this.password = password
     }
 
@@ -21,9 +22,15 @@ class SSHPrivateKeyCredentials extends Credentials {
             // An internal unique ID by which these credentials are identified from jobs and other configuration.
             id(this.id)
             username(this.username)
+            //privateKeySource {
+            //}
+            // see https://issues.jenkins-ci.org/browse/JENKINS-57435
             privateKeySource {
+                directEntryPrivateKeySource {
+                    privateKey(this.privatekey)
+                }
             }
-            passphrase(this.password)
+
             // An optional description to help tell similar credentials apart.
             description(this.description)
         }

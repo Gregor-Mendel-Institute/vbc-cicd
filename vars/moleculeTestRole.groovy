@@ -93,6 +93,8 @@ def call(Map params = [:]) {
                 steps {
                     script {
                         withCredentials(credentials) {
+                            echo "ensure onepass credentials"
+                            sh 'yamllint $ONEPASS_VARS'
                             runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios, concurrency: concurrency, moleculeBaseConfig: moleculeBaseConfig])
                         }
                     }
