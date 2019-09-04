@@ -16,7 +16,7 @@ class CredentialsBuilder {
 
         Map domainData = credentialsData.get('domain')
         // update with specific domain data if we have it
-        if (domainData) {
+        if (domainData && domainData.containsKey('name')) {
             this.domain = new CredentialsDomain(domainData)
         }
 
@@ -35,7 +35,7 @@ class CredentialsBuilder {
             case 'string':
                 return new StringCredentials(c.id, c.description, c.get('scope'), c.secret)
             case 'file':
-                return new FileCredentials(c.id, c.description, c.get('scope'), c.content)
+                return new FileCredentials(c.id, c.description, c.get('scope'), c.content, c)
             default:
                 throw UnsupportedOperationException('cannot handle credentials of type ${c.type}')
         }

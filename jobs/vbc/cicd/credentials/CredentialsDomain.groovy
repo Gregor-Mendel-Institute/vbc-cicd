@@ -1,7 +1,7 @@
 package vbc.cicd.credentials
 
 class CredentialsDomain {
-    static CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(name: null, description: null, includes: null, excludes: null)
+    static final CredentialsDomain DEFAULT_DOMAIN = new CredentialsDomain(name: null, description: null, includes: null, excludes: null)
 
     String name
     String description
@@ -26,12 +26,15 @@ class CredentialsDomain {
         return {
             name(this.name)
             description(this.description)
-            specifications {
-                hostnameSpecification {
-                    // A comma separated whitelist of hostnames.
-                    includes(this.includes)
-                    // A comma separated blacklist of hostnames.
-                    excludes(this.excludes)
+
+            if (this != CredentialsDomain.DEFAULT_DOMAIN) {
+                specifications {
+                    hostnameSpecification {
+                        // A comma separated whitelist of hostnames.
+                        includes(this.includes)
+                        // A comma separated blacklist of hostnames.
+                        excludes(this.excludes)
+                    }
                 }
             }
         }
