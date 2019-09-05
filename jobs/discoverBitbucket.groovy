@@ -32,7 +32,7 @@ for (org in discoverOrgs) {
                 repoOwner("${org.owner}")
                 serverUrl("${org.provider.url}")
 
-                // credentials for API access and checkouts
+                // credentials for API access
                 credentialsId("${org.provider.credentials}")
 
                 // this one is deprecated
@@ -126,7 +126,7 @@ for (org in discoverOrgs) {
 
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                 // use ssh with these credentials for the actual checkout
-                credentialsId(org.provider.checkoutCredentials)
+                credentialsId("${org.provider.checkoutCredentials}")
             }
 
            if (buildTags) {

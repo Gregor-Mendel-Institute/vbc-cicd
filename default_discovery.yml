@@ -14,15 +14,18 @@ repo_providers:
     type: bitbucket
     url: https://bitbucket.imp.ac.at
     credentials: 'svc-bitbucket-access-user-passwd'
-    checkoutCredentials: dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3
+    checkoutCredentials: 'dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3'
 #
 cicd_lib:
   name: 'vbc-cicd'
   # FIXME the GIT_BRANCH is referencing the Seedjob config,
   # maybe leave empty to use seed job
   # version: scmVars.GIT_BRANCH
-  gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git"
-  gitCredentialsId: dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3
+  # provider re-use bitbucket credentials settings
+  provider:
+    <<: *bitbucket
+    type: single
+    url: ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git
 #
 # these are the project config references
 repo_orgs:

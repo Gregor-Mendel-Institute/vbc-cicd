@@ -45,6 +45,9 @@ pipeline {
                         cicdLibSettings.version = scmVars.GIT_BRANCH
                     }
 
+
+                    // load myself as library for the discovery scripts, same repo ref as the seed job itself
+                    //library identifier: cicdLibSettings.name, retriever: modernSCM(scm)
                     // call the jobdsl script for the roles
                     jobDsl removedConfigFilesAction: 'DELETE',
                            removedJobAction: 'DELETE',
