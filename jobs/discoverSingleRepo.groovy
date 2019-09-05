@@ -109,9 +109,10 @@ multibranchPipelineJob("CookiecutterMolecule") {
             trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
         }
 
+        def checkoutCredentials = singleRepo.provider.checkoutCredentials
         scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
             // use ssh with these credentials for the actual checkout
-            credentialsId("${singleRepo.sshCredentials}")
+            credentialsId("${checkoutCredentials}")
         }
     }
 

@@ -5,6 +5,7 @@ def cicdLib = cicdLibConfig
 def orgJobs = []
 for (org in discoverOrgs) {
     def buildTags = org.buildTags
+    def provider = org.provider
     def folder = org.get('folder', org.owner)
     def orgJob = organizationFolder("${folder}") {
         displayName("${org.name}")
@@ -60,10 +61,10 @@ for (org in discoverOrgs) {
                 libraries {
                     libraryConfiguration {
                         // An identifier you pick for this library, to be used in the @Library annotation.
-                        name(cicdLib.name)
+                        name("${cicdLib.name}")
 
                         // A default version of the library to load if a script does not select another.
-                        defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
+                        defaultVersion("${cicdLib.version}") // this is the git tag, make sure to have branch/tag discovery
 
                         // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
                         //allowVersionOverride(boolean value)
@@ -126,7 +127,7 @@ for (org in discoverOrgs) {
 
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                 // use ssh with these credentials for the actual checkout
-                credentialsId("${org.provider.checkoutCredentials}")
+                credentialsId("${provider.checkoutCredentials}")
             }
 
            if (buildTags) {
