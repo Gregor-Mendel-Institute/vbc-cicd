@@ -21,11 +21,7 @@ cicd_lib:
   # FIXME the GIT_BRANCH is referencing the Seedjob config,
   # maybe leave empty to use seed job
   # version: scmVars.GIT_BRANCH
-  # provider re-use bitbucket credentials settings
-  provider:
-    <<: *bitbucket
-    type: single
-    url: ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git
+  provider: *bitbucket
 #
 # these are the project config references
 repo_orgs:
@@ -93,6 +89,16 @@ repo_orgs:
     buildTags: true
     provider:
       <<: *bitbucket
-      type: xxx-single
-# add ARAGWAS project
+      type: single
+  # add ARAGWAS project
+  - owner: 1001genomes
+    name: 1001 Genomes
+    includePattern: '*'
+    excludePattern: ''
+    buildTags: true
+    provider:
+      type: github
+      url: https://api.github.com
+      credentials: timeu_github_token
+      checkoutCredentials: timeu_github_token
 ...

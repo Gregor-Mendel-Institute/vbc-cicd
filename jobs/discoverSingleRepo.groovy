@@ -40,7 +40,7 @@ multibranchPipelineJob("CookiecutterMolecule") {
                     traits {
                         wipeWorkspaceTrait()
                         //localBranchTrait()
-                        //pruneStaleBranchTrait()
+                        pruneStaleBranchTrait()
                     }
                 }
             }

@@ -7,7 +7,6 @@ for (org in discoverOrgs) {
     if (org.provider.type != 'bitbucket')
         continue
 
-    echo "processing Bitbucket org ${org.name}"
     def buildTags = org.buildTags
     def provider = org.provider
     def folder = org.get('folder', org.owner)
