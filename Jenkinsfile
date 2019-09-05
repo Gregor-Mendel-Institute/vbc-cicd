@@ -23,6 +23,10 @@ pipeline {
     parameters {
         // see https://plugins.jenkins.io/git-parameter
         // these parameters only effect the repo/location/version of the discovery config data
+        // credentials name: "SEED_JOB_CREDENTIALS_ID", defaultValue: "${env.SEED_JOB_CREDENTIALS_ID}", description: 'credentials to access seed job config repo', credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey'
+        // branch,version of actual seed job is in its job definition
+        // gitParameter name: 'SEED_JOB_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_VERSION}", type: 'PT_BRANCH_TAG', description: 'seed job revision', useRepository: "${env.SEED_JOB_REPO_URL}", selectedValue: 'DEFAULT'
+
         string name: "SEED_JOB_CONFIG_REPO_URL", defaultValue: "${env.SEED_JOB_CONFIG_REPO_URL}", description: 'repo to retrieve discovery info from', trim: true
         gitParameter name: 'SEED_JOB_CONFIG_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_CONFIG_VERSION}", type: 'PT_BRANCH_TAG', description: 'which config (in host_vars) from linux-baseline repo', useRepository: "${env.SEED_JOB_CONFIG_REPO_URL}", selectedValue: "DEFAULT"
         string name: 'SEED_JOB_CONFIG_FILE', defaultValue: "${env.SEED_JOB_CONFIG_FILE}", description: 'file to read job discovery from', trim: true
@@ -51,7 +55,7 @@ pipeline {
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'config']],
                         submoduleCfg: [],
-                        userRemoteConfigs: [[credentialsId: "${env.SEED_JOB_CREDENTIALS_ID}", url: "${params.SEED_JOB_CONFIG_REPO_URL}"]]
+                        userRemoteConfigs: [[credentialsId: "${env.SEED_JOB_CREDENTIALS_ID}", url: "${env.SEED_JOB_CONFIG_REPO_URL}"]]
                     ])
                 }
             }
