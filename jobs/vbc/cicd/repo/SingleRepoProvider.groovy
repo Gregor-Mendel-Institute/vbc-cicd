@@ -12,11 +12,18 @@ class SingleRepoProvider extends RepoProvider {
 
     @Override
     Closure repoTriggers() {
-        return
+        return {
+            // if that even makes sense
+            bitbucketPush()
+        }
     }
 
     @Override
     Closure configure() {
-        return { }
+        return {
+            sources {
+
+            }
+        }
     }
 }
