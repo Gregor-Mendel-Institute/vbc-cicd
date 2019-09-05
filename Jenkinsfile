@@ -14,9 +14,9 @@ pipeline {
         // execute once an hour, on a minute calculated from the project name
         cron('H * * * *')
     }
-    parameters {
+    //parameters {
         //fileParam("pipelines.yml", "Pipeline definition fila (yaml)")
-    }
+    //}
 
     stages {
         // for display purposes
@@ -35,15 +35,15 @@ pipeline {
             steps {
                 script {
                     echo "my git setup: ${scmVars}"
-                    echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
                     // Bitbucket organizations to scan for roles
                     def discovery_data = readYaml file: "default_discovery.yml"
-
+                    def cicdLibSettings = discovery_data.cicd_lib
                     // shared CICD library config, could also do version: scmVars.GIT_COMMIT
-                    if not cicdLibSettings.version {
+                    if (! cicdLibSettings.version) {
                         cicdLibSettings.version = scmVars.GIT_BRANCH
                     }
+                    echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
 
                     // load myself as library for the discovery scripts, same repo ref as the seed job itself
@@ -56,7 +56,7 @@ pipeline {
                            sandbox: true,
                            targets: 'jobs/*.groovy',
                            additionalParameters: [
-                               cicdLibConfig: cicdLibSettings,
+                               cicdLib: cicdLibSettings,
                                discoverOrgs: discovery_data.repo_orgs
                            ]
                  }

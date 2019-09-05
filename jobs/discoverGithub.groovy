@@ -1,9 +1,10 @@
 
 def orgJobs = []
+def cicdLib = cicdLibConfig
 // groovy 2.4
 // for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
 for (org in discoverOrgs) {
-    if (org.provider.type != 'bitbucket')
+    if (org.provider.type != 'github')
         continue
 
     def buildTags = org.buildTags
@@ -13,7 +14,6 @@ for (org in discoverOrgs) {
         displayName("${org.name}")
         description("${org.description}")
         triggers {
-            bitbucketPush()
             periodicFolderTrigger {
                 // The maximum amount of time since the last indexing that is allowed to elapse before an indexing is triggered.
                 // rescan every 15 mins
@@ -31,12 +31,14 @@ for (org in discoverOrgs) {
 
         }
         organizations {
-            bitbucket {
+            github {
                 repoOwner("${org.owner}")
-                serverUrl("${org.provider.url}")
+                apiUri("${org.provider.url}")
 
-                // credentials for API access
+                // credentials for API access and checkouts
                 credentialsId("${org.provider.credentials}")
+                // not part of github?
+                // checkoutCredentialsId("${org.provider.checkoutCredentials}")
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
@@ -63,10 +65,10 @@ for (org in discoverOrgs) {
                 libraries {
                     libraryConfiguration {
                         // An identifier you pick for this library, to be used in the @Library annotation.
-                        name("${cicdLib.name}")
+                        name(cicdLib.name)
 
                         // A default version of the library to load if a script does not select another.
-                        defaultVersion("${cicdLib.version}") // this is the git tag, make sure to have branch/tag discovery
+                        defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
 
                         // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
                         //allowVersionOverride(boolean value)
@@ -81,8 +83,8 @@ for (org in discoverOrgs) {
                             modernSCM {
                                 scm {
                                     git {
-                                        remote(cicdLib.gitRepo)
-                                        credentialsId(cicdLib.gitCredentialsId)
+                                        remote(cicdLib.provider.url)
+                                        credentialsId(cicdLib.provider.checkoutCredentials)
 
                                         traits {
                                             gitBranchDiscovery()
@@ -99,45 +101,24 @@ for (org in discoverOrgs) {
 
         // see https://issues.jenkins-ci.org/browse/JENKINS-48360
         configure {
-            def scm_traits = it / navigators / 'com.cloudbees.jenkins.plugins.bitbucket.BitbucketSCMNavigator' / traits
-
-            // discover all branches
-            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.BranchDiscoveryTrait' {
-                strategyId('3')
-            }
-
-            // discover PRs in the same repo
-            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.OriginPullRequestDiscoveryTrait' {
-
-                // try both: the just the cloned branch AND the cloned branch merged on top of the destination branch of PR
-                strategyId('3')
-            }
-
-            // discover PRs in cloned repos
-            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait' {
-
-                // try both: the just the cloned branch AND the cloned branch merged on top of the destination branch of PR
-                strategyId('3')
-
-                // trust changed Jenkinsfiles from Everyone (from clones in other Accounts), if not trusted will require+use Jenkinsfile in origin
-                trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
-            }
-
-            // discover tags, if we release versions
-            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.TagDiscoveryTrait' {
-            }
-
-            scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
-                // use ssh with these credentials for the actual checkout
-                credentialsId("${provider.checkoutCredentials}")
-            }
+           // github specific from https://stackoverflow.com/questions/51747187/jenkins-configure-branch-discovery-for-github-organization-with-job-dsl
+           def traits = it / navigators / 'org.jenkinsci.plugins.github__branch__source.GitHubSCMNavigator' / traits
+           traits << 'org.jenkinsci.plugins.github_branch_source.BranchDiscoveryTrait' {
+               strategyId 1
+           }
+           traits << 'org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait' {
+               strategyId 2
+               trust(class: 'org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait$TrustContributors')
+           }
+           traits << 'org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait' {
+               strategyId 2
+           }
 
            def buildStrategies = it / buildStrategies
            buildStrategies << 'jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing' {
            }
            buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
            }
-
            if (buildTags) {
                // automatically build tags newer than 7 days (604800000 millis)
                buildStrategies << 'jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl' {
@@ -145,7 +126,6 @@ for (org in discoverOrgs) {
                    atMostMillis(604800000)
                }
            }
-
         }
     }
     orgJobs.add(orgJob)

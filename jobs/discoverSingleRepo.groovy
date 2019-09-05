@@ -1,5 +1,4 @@
 
-def cicdLib = cicdLibConfig
 
 for (singleRepo in discoverOrgs) {
 if (singleRepo.provider.type != 'single')
@@ -28,19 +27,19 @@ multibranchPipelineJob("CookiecutterMolecule") {
             source {
 // Discovers branches and/or pull requests from a specific repository in either Bitbucket Cloud or a Bitbucket Server instance.
                 bitbucket {
-                    serverUrl("${singleRepo.provider.url}")
+                    serverUrl(singleRepo.url)
                     // Specify the name of the Bitbucket Team or Bitbucket User Account.
-                    repoOwner("${singleRepo.repoOwner}")
+                    repoOwner(singleRepo.repoOwner)
                     // The repository to scan.
-                    repository("${singleRepo.repoName}")
+                    repository(singleRepo.repoName)
 
                     // credentials for API access and checkouts
-                    credentialsId("${singleRepo.credentials}")
+                    credentialsId(singleRepo.credentials)
 
                     traits {
                         wipeWorkspaceTrait()
                         //localBranchTrait()
-                        pruneStaleBranchTrait()
+                        //pruneStaleBranchTrait()
                     }
                 }
             }
@@ -109,10 +108,9 @@ multibranchPipelineJob("CookiecutterMolecule") {
             trust(class: 'com.cloudbees.jenkins.plugins.bitbucket.ForkPullRequestDiscoveryTrait$TrustEveryone')
         }
 
-        def checkoutCredentials = singleRepo.provider.checkoutCredentials
         scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
             // use ssh with these credentials for the actual checkout
-            credentialsId("${checkoutCredentials}")
+            credentialsId(singleRepo.sshCredentials)
         }
     }
 

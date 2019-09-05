@@ -66,6 +66,17 @@ repo_orgs:
     provider: *bitbucket
   #
   - owner: "CLIP"
+    folder: "CLIP-support"
+    name: "CLIP support"
+    description: "building containers, slurm, etc"
+    excludePattern: ""
+    includePattern: "slurm-build clip-docker-images"
+    buildTags: true
+    permissions:
+      - subject: "some_user"
+        privileges: *default_perms
+    provider: *bitbucket
+  - owner: "CLIP"
     folder: "CLIP-platinum"
     name: "Platinum"
     description: "CLIP Platinum accounting"
