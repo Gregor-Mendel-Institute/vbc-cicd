@@ -5,6 +5,9 @@ for (singleRepo in discoverOrgs) {
 if (singleRepo.provider.type != 'single')
     continue
 
+def hello = new vbc.ansible.cicd.Hello()
+hello.world()
+
 multibranchPipelineJob("CookiecutterMolecule") {
 
     displayName("Molecule Cookiecutter")

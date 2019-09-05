@@ -21,16 +21,9 @@ for (org in discoverOrgs) {
                 interval("60")
             }
         }
-        authorization {
-            // set permissions for generated jobs
-            // total admin access
-            permissionAll('admin_gods')
-            // add specific permissions if they were configured
-            for (perm in org.permissions) {
-              permissions(perm.subject, perm.privileges)
-            }
-
-        }
+        // authorization {
+        //    // jobUtils.buildPermissions(org.permissions)
+        // }
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
