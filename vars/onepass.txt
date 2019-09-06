@@ -1,0 +1,81 @@
+<p>
+Onepassword signin requires 2 credentials of type UsernamePassword:
+
+function:
+
+def sessionToken = signin(String credentialsUsernamePassword, String credentialsDomainMasterKey)
+
+* username + password=
+* domain + masterkey
+</p>
+
+<p>
+
+lookup requires parameter (must call signin() successfully before):
+String the_secret = lookup(String itemName, String vault=null, String section='default', String field = 'password')
+
+will return the field value as a single string=
+</p>
+
+
+<p>
+will return the whole item as Map
+Map the_item = raw(String itemName, String vault=null)
+</p>
+
+
+<p>
+example payload of a 1Password item
+<pre>{
+       "uuid": "luxb5uaasrgorhokhrbgvioyi4",
+       "templateUuid": "001",
+       "trashed": "N",
+       "createdAt": "2019-08-20T09:46:39Z",
+       "updatedAt": "2019-08-20T09:48:44Z",
+       "changerUuid": "2DHGUNNA7ZFQFKSDEQQIRONADU",
+       "itemVersion": 1,
+       "vaultUuid": "2cjwqg2wvbdsnaf6etdpmomora",
+       "details": {
+         "fields": [
+           {
+             "designation": "username",
+             "name": "username",
+             "type": "T",
+             "value": "my_name"
+           },
+           {
+             "designation": "password",
+             "name": "password",
+             "type": "P",
+             "value": "my_password"
+           }
+         ],
+         "notesPlain": "entry for testing 1password api lookups in arbitrary sections",
+         "sections": [
+           {
+             "name": "linked items",
+             "title": "Related Items"
+           },
+           {
+             "fields": [
+               {
+                 "k": "string",
+                 "n": "AA861505D1F347CB8EAAABA44DDB12EE",
+                 "t": "my_field",
+                 "v": "my_value"
+               }
+             ],
+             "name": "Section_408E7181BC004F92A43F75550D52BB9D",
+             "title": "my_section"
+           }
+         ]
+       },
+       "overview": {
+         "ainfo": "my_name",
+         "ps": 51,
+         "title": "my_test_example"
+       }
+     }
+</pre>
+
+</p>

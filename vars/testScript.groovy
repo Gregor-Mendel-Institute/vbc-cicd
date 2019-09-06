@@ -1,7 +1,7 @@
 
 // return implementation of container image test script run
 
-def testScript(String scriptPath, String testResultPattern=null, String imageName = null) {
+def call(String scriptPath, String testResultPattern=null, String imageName = null) {
     return { defaultImageName, allBuilds ->
         // use base image if not explicitly set
         if (!imageName) {

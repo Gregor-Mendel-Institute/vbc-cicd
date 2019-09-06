@@ -1,7 +1,9 @@
-
+#!/usr/bin/env groovy
 
 // transport scmVars through all stages, i.e. global
 def scmVars
+
+// reusable DSL https://blog.thesparktree.com/you-dont-know-jenkins-part-2
 
 pipeline {
 
@@ -14,6 +16,21 @@ pipeline {
         // execute once an hour, on a minute calculated from the project name
         cron('H * * * *')
     }
+    //parameters {
+        //fileParam("pipelines.yml", "Pipeline definition fila (yaml)")
+    //}
+    // not setting parameters here will avoid overwriting them from initial job DSL seed setup
+    parameters {
+        // see https://plugins.jenkins.io/git-parameter
+        // these parameters only effect the repo/location/version of the discovery config data
+        // credentials name: "SEED_JOB_CREDENTIALS_ID", defaultValue: "${env.SEED_JOB_CREDENTIALS_ID}", description: 'credentials to access seed job config repo', credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey'
+        // branch,version of actual seed job is in its job definition
+        // gitParameter name: 'SEED_JOB_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_VERSION}", type: 'PT_BRANCH_TAG', description: 'seed job revision', useRepository: "${env.SEED_JOB_REPO_URL}", selectedValue: 'DEFAULT'
+
+        string name: "SEED_JOB_CONFIG_REPO_URL", defaultValue: "${env.SEED_JOB_CONFIG_REPO_URL}", description: 'repo to retrieve discovery info from', trim: true
+        gitParameter name: 'SEED_JOB_CONFIG_VERSION', branchFilter: "origin/(.*)", defaultValue: "${env.SEED_JOB_CONFIG_VERSION}", type: 'PT_BRANCH_TAG', description: 'which config (in host_vars) from linux-baseline repo', useRepository: "${env.SEED_JOB_CONFIG_REPO_URL}", selectedValue: "DEFAULT"
+        string name: 'SEED_JOB_CONFIG_FILE', defaultValue: "${env.SEED_JOB_CONFIG_FILE}", description: 'file to read job discovery from', trim: true
+    }
 
     stages {
         // for display purposes
@@ -21,84 +38,77 @@ pipeline {
             steps {
                 script {
                     // this is not for declarative pipelines, only for scripted
-                    properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], pipelineTriggers([[$class: 'PeriodicFolderTrigger', interval: '1h']])])
+                    properties([
+                        //[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
+                        pipelineTriggers([[$class: 'PeriodicFolderTrigger', interval: '1h']])
+                    ])
 
                     // get the code from a git repository
                     scmVars = checkout scm
+                    // checkout baseline for seed org info
+                    // FIXME ref should be configurable, i.e. branch or tag
+                    // TODO investigate resolveScm(source: git('https://example.com/example.git'), targets: [BRANCH_NAME, 'master']
+                    // tries to find the same ref as main scm, then falls back to master
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "${params.SEED_JOB_CONFIG_VERSION}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'config']],
+                        submoduleCfg: [],
+                        userRemoteConfigs: [[credentialsId: "${env.SEED_JOB_CREDENTIALS_ID}", url: "${env.SEED_JOB_CONFIG_REPO_URL}"]]
+                    ])
                 }
             }
         }
+
         stage('generate') {
             steps {
                 script {
-                    def bitbucketUrl = 'https://bitbucket.imp.ac.at'
-                    def bitbucketCredentials = 'svc-bitbucket-access-user-passwd'
-                    def bitbucketSshCredentials = 'dd2eddb1-0e79-4acb-9dca-5fe6b4ba25b3'
-
-                    // shared CICD library config, could also do version: scmVars.GIT_COMMIT
-                    def cicdLibSettings = [
-                            name: 'vbc-cicd',
-                            version: scmVars.GIT_BRANCH,
-                            gitRepo: "ssh://git@bitbucket.imp.ac.at:7991/iab/vbc-cicd.git",
-                            gitCredentialsId: bitbucketSshCredentials
-                    ]
-
                     echo "my git setup: ${scmVars}"
-                    echo "will configure library as: ${cicdLibSettings.name} in version: ${cicdLibSettings.version} (commit or branch or tag)"
 
-                    // Bitbucket organizations to scan for roles
-                    def vbcBitbucketOrgs = [
-                        [owner: "IAB",
-                          name:"IT Ansible Baseline",
-                          description: "Baseline components for System Deployment",
-                          excludePattern: "vbc-cicd",
-                          includePattern: "*",
-                          buildTags: false ],
-                        [owner: "IAO",
-                          name:"IT Ansible Ops",
-                          description: "Operations Tasks and Tooling",
-                          excludePattern: "",
-                          includePattern: "*",
-                          buildTags: false ],
-                        [owner: "VBC",
-                          name:"VBC repos",
-                          description: "mostly for building docker images",
-                          excludePattern: "",
-                          includePattern: "*",
-                          buildTags: true ],
-                        [owner: "CLIP",
-                          name:"CLIP Ansible Roles",
-                          description: "CLIP related Ansible roles",
-                          excludePattern: "",
-                          includePattern: "role-*",
-                          buildTags: false ]
-                    ]
+                    // organizations to scan
+                    def discovery_data = readYaml file: "${env.SEED_JOB_CONFIG_FILE}"
+                    onepass.signin('svc-1password-user', 'svc-1password-domain')
 
-                    // molecule cookiecutter testing is extra
-                    def cookiecutterRepoConfig = [
-                        url: bitbucketUrl,
-                        credentials: bitbucketCredentials,
-                        repoOwner: "IAB",
-                        repoName: "cookiecutter-molecule",
-                        sshCredentials: bitbucketSshCredentials
-                    ]
+                    // lookup all the credentials
+                    def seed_orgs = discovery_data.jenkins_seed_orgs
+                    // echo "processing seed orgs: ${seed_orgs}"
+                    for (org in seed_orgs) {
+                        echo "fetching credentials specific to ${org.owner}"
+                        for (creds_in_domain in org.jenkins.get('credentials', [])) {
 
+                          def domain = creds_in_domain.get('domain')
+                          if (domain != null) {
+                            echo "lookup for domain: ${domain.name}"
+                          }
+                          else {
+                            echo "lookup for DEFAULT domain:"
+                          }
 
+                          for (cc in creds_in_domain.credentials) {
+                            echo "looking for ${cc.id}"
+                                if ('onepass' in cc) {
+                                    for (op_lookup in cc.onepass) {
+                                        // dynamically lookup and assign
+                                        cc."${op_lookup.target}" = onepass.lookup(op_lookup.item, op_lookup.vault, op_lookup.section, op_lookup.field)
+                                    }
+                                }
+                          }
+                        }
+                    }
 
                     // call the jobdsl script for the roles
                     jobDsl removedConfigFilesAction: 'DELETE',
                            removedJobAction: 'DELETE',
                            removedViewAction: 'DELETE',
-                           lookupStrategy: 'SEED_JOB',
+                           //lookupStrategy: 'SEED_JOB',
+                           lookupStrategy: 'JENKINS_ROOT',
                            sandbox: true,
-                           targets: 'jobs/*.groovy',
+                           targets: 'jobs/discoverWithLib.groovy',
+                           //additionalClasspath: 'src/main/groovy',
                            additionalParameters: [
-                               bitbucketUrl: bitbucketUrl,
-                               bitbucketCredentials: bitbucketCredentials,
-                               bitbucketSshCredentials: bitbucketSshCredentials,
-                               cicdLibConfig: cicdLibSettings,
-                               vbcBitbucketOrgs: vbcBitbucketOrgs,
-                               cookiecutterRepoConfig: cookiecutterRepoConfig
+                               discoverOrgs: seed_orgs,
+                               globalJobDisabled: (env.GLOBAL_JOB_DISABLE == 'true')
                            ]
                  }
             }
@@ -110,6 +120,11 @@ pipeline {
             // notify build results, see https://jenkins.io/blog/2016/07/18/pipline-notifications/
             // notifyBuild(currentBuild.result)
             echo "this will always show up"
+
+            echo "publish build result to Artifactory"
+            rtBuildInfo maxBuilds: 30, captureEnv: true
+            rtPublishBuildInfo serverId: "artifactoryVBC"
+
         }
         changed {
             echo "build changed"

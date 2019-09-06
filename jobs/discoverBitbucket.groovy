@@ -1,14 +1,18 @@
 
 
-def repoUrl = bitbucketUrl
-def repoCredentials = bitbucketCredentials
-def repoCheckoutCredentials = bitbucketSshCredentials
-def cicdLib = cicdLibConfig
-
 def orgJobs = []
-for (org in vbcBitbucketOrgs) {
-    def buildTags = org.buildTags
-    def orgJob = organizationFolder("${org.owner}") {
+// groovy 2.4
+// for (org in discoverOrgs.findAll({ it.provider.type == 'bitbucket' }) ) {
+for (org in discoverOrgs) {
+    if (org.jenkins.provider.type != 'bitbucket')
+        continue
+    if (org.owner == 'ABC')
+        continue
+
+    def buildTags = org.jenkins.buildTags
+    def provider = org.jenkins.provider
+    def folder = org.jenkins.get('folder', org.owner)
+    def orgJob = organizationFolder(folder) {
         displayName("${org.name}")
         description("${org.description}")
         triggers {
@@ -20,25 +24,28 @@ for (org in vbcBitbucketOrgs) {
             }
         }
         authorization {
-            // set permissions for generated jobs
-            //permissionAll('adm_ebirn')
-
+            // jobUtils.buildPermissions(org.permissions)
+            for (group in org.groups) {
+              permissions(group.name, group.jenkins_perms)
+            }
         }
+
         organizations {
             bitbucket {
                 repoOwner("${org.owner}")
-                serverUrl("${repoUrl}")
+                serverUrl("${org.jenkins.provider.url}")
 
-                // credentials for API access and checkouts
-                credentialsId("${repoCredentials}")
+                // credentials for API access
+                credentialsId("${org.jenkins.provider.credentials}")
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
                 traits {
+
                     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
-                        includes("${org.includePattern}")
-                        excludes("${org.excludePattern}")
+                        includes("${org.jenkins.includePattern}")
+                        excludes("${org.jenkins.excludePattern}")
                     }
                 }
             }
@@ -47,6 +54,7 @@ for (org in vbcBitbucketOrgs) {
         projectFactories {
             workflowMultiBranchProjectFactory {
                 // Relative location within the checkout of your Pipeline script.
+                scriptPath("Jenkinsfile.vbc")
                 scriptPath("Jenkinsfile")
             }
         }
@@ -56,10 +64,10 @@ for (org in vbcBitbucketOrgs) {
                 libraries {
                     libraryConfiguration {
                         // An identifier you pick for this library, to be used in the @Library annotation.
-                        name(cicdLib.name)
+                        name("${cicdLib.name}")
 
                         // A default version of the library to load if a script does not select another.
-                        defaultVersion(cicdLib.version) // this is the git tag, make sure to have branch/tag discovery
+                        defaultVersion("${cicdLib.version}") // this is the git tag, make sure to have branch/tag discovery
 
                         // If checked, scripts may select a custom version of the library by appending @someversion in the @Library annotation.
                         //allowVersionOverride(boolean value)
@@ -74,8 +82,8 @@ for (org in vbcBitbucketOrgs) {
                             modernSCM {
                                 scm {
                                     git {
-                                        remote(cicdLib.gitRepo)
-                                        credentialsId(cicdLib.gitCredentialsId)
+                                        remote(cicdLib.provider.url)
+                                        credentialsId(cicdLib.provider.checkoutCredentials)
 
                                         traits {
                                             gitBranchDiscovery()
@@ -122,15 +130,17 @@ for (org in vbcBitbucketOrgs) {
 
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.SSHCheckoutTrait' {
                 // use ssh with these credentials for the actual checkout
-                credentialsId(repoCheckoutCredentials)
+                credentialsId("${provider.checkoutCredentials}")
             }
 
+           def buildStrategies = it / buildStrategies
+           buildStrategies << 'jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing' {
+           }
+           buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
+           }
+
            if (buildTags) {
-           //if (true) {
                // automatically build tags newer than 7 days (604800000 millis)
-               def buildStrategies = it / buildStrategies 
-               buildStrategies << 'jenkins.branch.buildstrategies.basic.BranchBuildStrategyImpl' {
-               }
                buildStrategies << 'jenkins.branch.buildstrategies.basic.TagBuildStrategyImpl' {
                    atLeastMillis(1)
                    atMostMillis(604800000)

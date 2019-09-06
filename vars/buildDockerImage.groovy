@@ -32,6 +32,7 @@ def call(Map params = [:]) {
 
     // params go here
     def imageName = params['imageName']
+    def extraBuildArgs = params.get("extraBuildArgs", "")
     def pullRegistry = params.get("pullRegistry", "registry.redhat.io")
     def pullRegistryCredentials = params.get("pullRegistryCredentials", "redhat-registry-service-account")
 
@@ -73,6 +74,7 @@ def call(Map params = [:]) {
         imageName: imageName,
         dockerFile: './Dockerfile',
         dockerContext: '.',
+        extraBuildArgs: extraBuildArgs,
         pullRegistry: pullRegistry,
         pullRegistryCredentials: pullRegistryCredentials,
         pushRegistry: pushRegistry,
@@ -164,7 +166,7 @@ def call(Map params = [:]) {
                                                   --build-arg BUILD_NUMBER='${BUILD_NUMBER}' \
                                                   --build-arg NODE_NAME='${NODE_NAME}'"
 
-                                def productImage = docker.build("${imgRepo}:${GIT_COMMIT}", "-f ${conf.dockerFile} ${jenkinsLabels} ${jenkinsArgs} ${conf.dockerContext}")
+                                def productImage = docker.build("${imgRepo}:${GIT_COMMIT}", "-f ${conf.dockerFile} ${jenkinsLabels} ${jenkinsArgs} ${conf.extraBuildArgs} ${conf.dockerContext}")
                                 build.putAll([image: productImage, repo: imgRepo])
                             }
                         })

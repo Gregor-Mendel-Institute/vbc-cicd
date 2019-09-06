@@ -25,7 +25,7 @@ def call(Map params = [:]) {
     // additional credentials were handed in as list: https://jenkins.io/doc/pipeline/steps/credentials-binding/
     def credentials = params.get("credentials", [])
     // always inject the 1password service credentials
-    credentials += file([credentialsId: '1password-service-user', variable:'ONEPASS_VARS'])
+    credentials += file([credentialsId: 'svc-1password-file', variable:'ONEPASS_VARS'])
 
     for (cred in credentials) {
         echo "using credential: ${cred}"
@@ -93,6 +93,8 @@ def call(Map params = [:]) {
                 steps {
                     script {
                         withCredentials(credentials) {
+                            echo "ensure onepass credentials"
+                            sh 'yamllint $ONEPASS_VARS'
                             runMoleculeTest(roleName, [debug: params.MOLECULE_DEBUG, scenarios: moleculeScenarios, concurrency: concurrency, moleculeBaseConfig: moleculeBaseConfig])
                         }
                     }
