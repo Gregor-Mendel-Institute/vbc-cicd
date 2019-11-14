@@ -70,14 +70,19 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
                 }
                 // see multiline indent https://stackoverflow.com/questions/19882849/strip-indent-in-groovy-multiline-strings
                 echo "==================== END scenario ${localScenario} ===================="
+                // initial check for stage results, we MUST produce a junit output
+
+                // exit code is always 1, wether test fail, or ansible run exploded
+                if(test_status != 0) {
+                  warning("Scenario ${localScenario} returned non-zero exit code")
+                }
+
+                // collect the test results from all scenarios, fail if no result
+                junit keepLongStdio: true, testResults: "**/molecule/${localScenario}/junit.xml"
             }
         }
     }
 
     // run collected scenario stages
     parallel parallelStages
-
-    // collect the test results from all scenarios
-    junit keepLongStdio: true, testResults: '**/molecule/*/junit.xml'
-
 }
