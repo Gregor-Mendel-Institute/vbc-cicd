@@ -1,0 +1,22 @@
+
+FROM centos:latest
+LABEL maintainer="Erich Birngruber <erich.birngruber@gmi.oeaw.ac.at>"
+
+RUN yum update -y && \
+  yum install -y epel-release && \
+  yum update -y && \
+  yum install -y singularity-runtime singularity
+
+ARG BUILDER_UID=1234
+ARG BUILDER_GID=1234
+
+RUN yum install -y sudo strace
+RUN groupadd --gid $BUILDER_GID builder && adduser --uid $BUILDER_UID --gid $BUILDER_GID -G wheel builder
+
+RUN echo "builder:100000:65536" > /etc/subuid
+RUN echo "builder:100000:65536" > /etc/subgid
+
+RUN singularity config fakeroot --enable builder
+RUN singularity config fakeroot --add builder
+
+USER builder
