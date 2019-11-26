@@ -1,22 +1,26 @@
 
 def call(Map params = [:]) {
 
-    def imageName = params['imageName']
-    def recipeFile = params.get('recipeFile', 'Singularityfile')
-    // def extraBuildArgs = params.get("extraBuildArgs", "")
+    multiBuild.addParam('imageName', params['imageName'], true)
+    multiBuild.addParam('recipeFile',  params.get('recipeFile', 'Singularityfile'))
 
     // buildPath is different than context in docker builds
-    def buildPath = params.get('buildPath', "")
+    multiBuild.addParam('buildPath',  params.get('buildPath', ""))
+    multiBuild.addParam('signKeyCredentials', params.get("signKeyCredentials", null))
 
+    multiBuild.addParam('pushRegistry', params.get("pushRegistry", "singularity.vbc.ac.at"))
+    multiBuild.addParam('pushRegistryNamespace', params.get("pushRegistryNamespace", "default"))
+    multiBuild.addParam('pushRegistryCredentials', params.get("pushRegistryCredentials", null))
+
+    // global only, as this switches the test stage on/off
+    def runTest =  params.get('runTest', true)
+    // branches that will be pushed
     def pushBranches = params.get("pushBranches", ["develop"])
-    def pushRegistry = params.get("pushRegistry", "singularity.vbc.ac.at")
-    def pushRegistryNamespace = params.get("pushRegistryNamespace", "default")
-    def pushRegistryCredentials = params.get("pushRegistryCredentials", null)
 
-    def signKeyCredentials = params.get("signKeyCredentials", null)
     def debugFlag = '' // '--debug'
 
-    def runTest = params.get('runTest', true)
+    multiBuild.addMultiParams('imageName', params.get('containerImages', []))
+
     def isPushBranch = false
     def isTagBuild = false
 
@@ -25,13 +29,13 @@ def call(Map params = [:]) {
     def agentDockerfile = 'Dockerfile.singularity'
     def agentDockerArgs = '--privileged'
 
+    def pushRegistryCredentials = multiBuild.defaultParams.get('pushRegistryCredentials', false)
     if(pushRegistryCredentials) {
         echo "using push credentials id ${pushRegistryCredentials}."
     }
     else {
         echo "got no push credentials, will not push."
     }
-
 
     pipeline {
 
@@ -89,16 +93,19 @@ def call(Map params = [:]) {
                 steps {
                     script {
                         echo "Singularity version"
+                        sh "env; singularity --version"
                         ansiColor('xterm') {
-                            sh "env; singularity --version"
-                            dir(buildPath) {
-                                def buildStatus = sh returnStatus: true, script: "singularity --verbose ${debugFlag} build --force --fakeroot --notest ${imageName}.sif ${recipeFile}"
+                            multiBuild.forAllBuilds({name, conf, build ->
+                                echo("building image '${name}'.")
+                                dir(conf.buildPath) {
+                                    def buildStatus = sh returnStatus: true, script: "singularity --verbose ${debugFlag} build --force --fakeroot --notest ${name}.sif ${conf.recipeFile}"
 
-                                // use warnError in the future
-                                if (buildStatus) {
-                                    error("failed to build Singularity image")
+                                    // use warnError in the future
+                                    if (buildStatus) {
+                                        error("failed to build Singularity image ${name}")
+                                    }
                                 }
-                            }
+                            })
                         }
                     }
                 }
@@ -119,12 +126,14 @@ def call(Map params = [:]) {
                 steps {
                     script {
                         ansiColor('xterm') {
-                            dir(buildPath) {
-                                def testResult = sh returnStatus: true, script: "singularity test --fakeroot ${imageName}.sif"
-                                if (testResult) {
-                                    unstable("test for image ${imageName} failed.")
+                            multiBuild.forAllBuilds({name, conf, build -> 
+                                dir(conf.buildPath) {
+                                    def testResult = sh returnStatus: true, script: "singularity test --fakeroot ${name}.sif"
+                                    if (testResult) {
+                                        unstable("test for image ${name} failed.")
+                                    }
                                 }
-                            }
+                            })
                         }
                     }
                 }
@@ -148,32 +157,30 @@ def call(Map params = [:]) {
                 }
                 steps {
                     script {
-                        //forAllBuilds({ name, conf, image ->
-                        // sh "singularity remote add vbc singularity.vbc.ac.at"
-                        // sh "singularity remote use vbc"
-                        // FIXE inject token as secret file sh "singularity remote login vbc  --tokenfile /dev/null"
-                        // sh "singularity sign ${imageName}.sif"
-                        //sh "singularity push ${imageName}.sif library://${pushRegistry}/${pushNamespace}/${imageName}:${BRANCH_NAME}"
-                        def pushUnsignedParam  = ' --allow-unsigned '
-                        if(signKeyCredentials) {
-                            // TODO read credentials, import key, sign the image
-                            pushUnsignedParam = ''
-                            echo 'image signing not implemented (yet).'
-                        }
-                        else {
-                            echo "no signing key, will push unsigned"
-                        }
-                        withCredentials([usernamePassword(credentialsId: pushRegistryCredentials, usernameVariable: 'SINGULARITY_LIBRARY_USER', passwordVariable: 'SINGULARITY_LIBRARY_TOKEN')]) {
-                            def registryAlias = 'jenkins'
-                            dir(buildPath) {
-                                sh 'echo $SINGULARITY_LIBRARY_TOKEN |' + " singularity remote add ${registryAlias} ${pushRegistry}"
-                                sh "singularity remote list"
-                                sh "singularity remote status ${registryAlias}"
-                                sh "singularity remote use ${registryAlias}"
-                                sh "singularity push ${pushUnsignedParam} ${imageName}.sif library://" + '$SINGULARITY_LIBRARY_USER' + "/${pushRegistryNamespace}/${imageName}:${BRANCH_NAME}"
+                        multiBuild.forAllBuilds({name, conf, build -> 
+                            def pushUnsignedParam  = ' --allow-unsigned '
+                            if(conf.signKeyCredentials) {
+                                // TODO read credentials, import key, sign the image
+                                pushUnsignedParam = ''
+                                echo 'image signing not implemented (yet).'
                             }
-                        }
-                        //})
+                            else {
+                                echo "no signing key, will push unsigned"
+                            }
+                            withCredentials([usernamePassword(credentialsId: conf.pushRegistryCredentials, 
+                                                              usernameVariable: 'SINGULARITY_LIBRARY_USER', 
+                                                              passwordVariable: 'SINGULARITY_LIBRARY_TOKEN')]) {
+                                def registryAlias = name
+                                dir(conf.buildPath) {
+                                    sh 'echo $SINGULARITY_LIBRARY_TOKEN |' + " singularity remote add ${registryAlias} ${conf.pushRegistry}"
+                                    sh "singularity remote use ${registryAlias}"
+                                    sh "singularity remote list"
+                                    sh "singularity remote status ${registryAlias}"
+                                    sh "singularity push ${pushUnsignedParam} ${conf.imageName}.sif library://" + '$SINGULARITY_LIBRARY_USER' +  \
+                                        "/${conf.pushRegistryNamespace}/${conf.imageName}:${BRANCH_NAME}"
+                                }
+                            }
+                        })
                     }
                 }
             }
