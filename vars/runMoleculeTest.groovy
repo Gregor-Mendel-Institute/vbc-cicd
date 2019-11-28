@@ -74,7 +74,7 @@ def call(String roleName, Map params=[debug: false, scenarios: ["default"], conc
 
                 // exit code is always 1, wether test fail, or ansible run exploded
                 if(test_status != 0) {
-                  warning("Scenario ${localScenario} returned non-zero exit code")
+                    unstable("Scenario ${localScenario} returned non-zero exit code")
                 }
 
                 // collect the test results from all scenarios, fail if no result
