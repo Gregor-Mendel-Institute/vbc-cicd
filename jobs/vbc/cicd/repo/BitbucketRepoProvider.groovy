@@ -29,8 +29,8 @@ class BitbucketRepoProvider extends RepoProvider {
                 // traits {
                 //     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
-                        includes(this.includes)
-                        excludes(this.excludes)
+                //        includes(this.includes)
+                //       excludes(this.excludes)
                 //     }
                 // }
             }
@@ -53,6 +53,12 @@ class BitbucketRepoProvider extends RepoProvider {
     Closure configure() {
         return { it ->
             def scm_traits = it / navigators / 'com.cloudbees.jenkins.plugins.bitbucket.BitbucketSCMNavigator' / traits
+
+            // set repo include, exclude patterns
+            scm_traits << 'jenkins.scm.impl.trait.WildcardSCMSourceFilterTrait' {
+                includes(this.includes)
+                excludes(this.excludes)
+            }
 
             // discover all branches
             scm_traits << 'com.cloudbees.jenkins.plugins.bitbucket.BranchDiscoveryTrait' {
