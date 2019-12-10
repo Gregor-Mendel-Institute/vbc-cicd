@@ -26,14 +26,13 @@ class BitbucketRepoProvider extends RepoProvider {
 
                 // this one is deprecated
                 //autoRegisterHooks(true)
-                traits {
-
-                    sourceWildcardFilter {
+                // traits {
+                //     sourceWildcardFilter {
                         // Space-separated list of project name patterns to consider.
                         includes(this.includes)
                         excludes(this.excludes)
-                    }
-                }
+                //     }
+                // }
             }
         }
     }
